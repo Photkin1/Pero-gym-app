@@ -74,7 +74,8 @@ jobs:
           cp -r dist out/app
           # SQLite в браузере требует cross-origin isolation, на Pages её даёт service worker
           mv out/coi-serviceworker.js out/app/
-          sed -i 's#<head>#<head><script src="/Pero-gym-app/app/coi-serviceworker.js"></script>#' out/app/index.html
+          # Safari не умеет COEP credentialless, поэтому всегда require-corp: все ресурсы у нас свои
+          sed -i 's#<head>#<head><script>window.coi={coepCredentialless:function(){return false}}</script><script src="/Pero-gym-app/app/coi-serviceworker.js"></script>#' out/app/index.html
           # Чтобы на iPhone веб-версию можно было поставить на экран «Домой» как приложение
           mv out/pwa/* out/app/ && rmdir out/pwa
           sed -i 's#</head>#<link rel="manifest" href="/Pero-gym-app/app/manifest.webmanifest"><link rel="apple-touch-icon" href="/Pero-gym-app/app/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Pero"><meta name="apple-mobile-web-app-status-bar-style" content="default"></head>#' out/app/index.html

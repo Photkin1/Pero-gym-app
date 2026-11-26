@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -20,12 +20,17 @@ import { ProfileSetup, profileDone } from '../ui/ProfileSetup';
 // База готовится до первого кадра: все запросы синхронные и быстрые.
 // В веб-версии сначала ждём, пока загрузится SQLite-воркер.
 let dbReady = false;
-const dbPromise = prepareDb().then(() => {
-  migrate();
-  seedIfEmpty();
-  patchBundledPrograms();
-  dbReady = true;
-});
+let dbError: string | null = null;
+const dbPromise = prepareDb()
+  .then(() => {
+    migrate();
+    seedIfEmpty();
+    patchBundledPrograms();
+    dbReady = true;
+  })
+  .catch((e: unknown) => {
+    dbError = String((e as Error)?.message ?? e);
+  });
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function Shell() {
@@ -51,8 +56,13 @@ function Shell() {
 export default function RootLayout() {
   const [loaded] = useFonts(FONTS);
   const [ready, setReady] = useState(dbReady);
+  const [fail, setFail] = useState<string | null>(null);
   useEffect(() => {
-    if (!ready) dbPromise.then(() => setReady(true));
+    if (ready) return;
+    dbPromise.then(() => (dbError ? setFail(dbError) : setReady(true)));
+    // Если база так и не открылась (например, браузер без нужных функций), не оставляем белый экран
+    const tm = setTimeout(() => !dbReady && setFail(dbError ?? 'База данных не открылась за 15 секунд'), 15000);
+    return () => clearTimeout(tm);
   }, [ready]);
   const [intro, setIntro] = useState(true);
   const endIntro = useCallback(() => setIntro(false), []);
@@ -63,6 +73,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded && ready) SplashScreen.hideAsync().catch(() => {});
   }, [loaded, ready]);
+  if (fail && !ready) return <StartError text={fail} />;
   if (!loaded || !ready) return null;
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -74,5 +85,19 @@ export default function RootLayout() {
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
+  );
+}
+
+function StartError({ text }: { text: string }) {
+  const web = Platform.OS === 'web';
+  const isolated = web && typeof globalThis !== 'undefined' ? String((globalThis as { crossOriginIsolated?: boolean }).crossOriginIsolated) : '-';
+  return (
+    <View style={{ flex: 1, backgroundColor: '#121316', padding: 28, justifyContent: 'center', gap: 14 }}>
+      <Text style={{ color: '#fff', fontSize: 22, fontWeight: '700' }}>Pero не смог запуститься</Text>
+      <Text style={{ color: '#c9ccd3', fontSize: 15, lineHeight: 21 }}>
+        {web ? 'Попробуй обновить страницу. Если не помогло, пришли этот экран разработчику.' : 'Перезапусти приложение. Если не помогло, пришли этот экран разработчику.'}
+      </Text>
+      <Text style={{ color: '#8d93a0', fontSize: 12.5 }} selectable>{`${text}\nisolated: ${isolated}\n${web && typeof navigator !== 'undefined' ? navigator.userAgent : ''}`}</Text>
+    </View>
   );
 }
