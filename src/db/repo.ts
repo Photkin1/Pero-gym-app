@@ -93,7 +93,7 @@ export function seedIfEmpty() {
 
 /** Разовые правки встроенной программы Петра у тех, кто её уже установил. Свои изменения в программе не затираются. */
 export function patchBundledPrograms() {
-  const KEY = 'patch.ul4d.delts-calves';
+  const KEY = 'patch.ul4d.delts-calves-shrugs';
   if (getSetting(KEY, false)) return;
   const rows = db.getAllSync<{ id: number; json: string }>('SELECT id, json FROM program');
   for (const r of rows) {
@@ -109,6 +109,12 @@ export function patchBundledPrograms() {
         ua.exercises.splice(i >= 0 ? i + 1 : ua.exercises.length, 0, { exercise: 'reverse-pec-deck', sets: 2, reps: '12-15', rir: '0-1', rest: '60s', start_weight: 40 });
         changed = true;
       }
+    }
+    const ub = w('upper-b');
+    if (ub && !ub.exercises.some((e) => e.exercise === 'shrug')) {
+      const i = ub.exercises.findIndex((e) => e.exercise === 'lateral-raise');
+      ub.exercises.splice(i >= 0 ? i + 1 : ub.exercises.length, 0, { exercise: 'shrug', variant: 'dumbbell', sets: 3, reps: '10-15', rir: '0-1', rest: '60s', note: 'Пауза вверху 1 с, плечи не крутить' });
+      changed = true;
     }
     for (const [wid, ex] of [['lower-a', 'standing-calf-raise'], ['lower-b', 'seated-calf-raise']] as const) {
       const e = w(wid)?.exercises.find((x) => x.exercise === ex);
