@@ -44,6 +44,16 @@ jobs:
           npx tsc --noEmit
           node --experimental-strip-types --test src/core/core.test.ts
 
+      - name: Stamp build number
+        # Номер сборки = номер запуска CI: им же Android сравнивает версии, и по нему приложение видит обновления
+        run: |
+          node -e "
+            const fs=require('fs');const j=JSON.parse(fs.readFileSync('app.json','utf8'));
+            j.expo.android.versionCode=Number(process.env.GITHUB_RUN_NUMBER);
+            j.expo.version='1.0.'+process.env.GITHUB_RUN_NUMBER;
+            j.expo.extra={...(j.expo.extra||{}),build:Number(process.env.GITHUB_RUN_NUMBER)};
+            fs.writeFileSync('app.json',JSON.stringify(j,null,2));"
+
       - name: Generate Android project
         run: npx expo prebuild --platform android --no-install
 
@@ -70,6 +80,7 @@ jobs:
           SIZE=$(du -m out/pero.apk | cut -f1)
           BUILD="$(date -u +%d.%m.%Y) · ${GITHUB_SHA::7}"
           sed -i "s/__APK_SIZE__/${SIZE} МБ/; s/__BUILD__/${BUILD}/" out/index.html
+          echo "{\"build\": ${GITHUB_RUN_NUMBER}, \"date\": \"$(date -u +%Y-%m-%d)\"}" > out/version.json
           touch out/.nojekyll
 
       - uses: actions/upload-artifact@v4

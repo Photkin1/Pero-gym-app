@@ -16,6 +16,7 @@ import { dayKey } from '../../ui/charts';
 import { StreakCard } from '../../ui/StreakCard';
 import { computeStreak } from '../../core/streak';
 import { weeklyGoal } from '../../features/achievements';
+import { installUpdate, useUpdate } from '../../features/update';
 
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 const DAYS_FULL = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
@@ -34,6 +35,7 @@ export default function Today() {
   const openRows = useLive(() => (open ? listSets(open.id) : []), [open?.id]);
   const defs = useMemo(() => defsFor(program), [program]);
   const [picked, setPicked] = useState<string | null>(null);
+  const update = useUpdate();
 
   const now = new Date();
   const todayKey = dayKey(Date.now());
@@ -72,6 +74,19 @@ export default function Today() {
       subtitle={`${DAYS_FULL[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]}`}
       right={<IconBtn name="gear" onPress={() => router.push('/settings')} color={t.id === 'energy' ? t.c.onHeader : t.c.ink} label="Настройки" />}
     >
+      {update && (
+        <Animated.View entering={FadeInDown.duration(350)}>
+          <Card onPress={installUpdate} style={{ borderColor: t.c.accent }}>
+            <Row>
+              <View style={{ transform: [{ rotate: "180deg" }] }}><Icon name="share" color={t.c.accent} size={22} /></View>
+              <View style={{ flex: 1, gap: 2 }}>
+                <Txt v="h3">Доступно обновление</Txt>
+                <Txt v="small" color={t.c.muted}>Нажми, чтобы скачать и установить. Данные сохранятся.</Txt>
+              </View>
+            </Row>
+          </Card>
+        </Animated.View>
+      )}
       {open && (
         <Animated.View entering={FadeInDown.duration(350)}>
           <Card onPress={() => router.push(`/workout/${open.id}`)} style={{ backgroundColor: t.c.accent, borderWidth: 0 }}>
