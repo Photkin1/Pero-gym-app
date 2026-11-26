@@ -4,9 +4,10 @@ import { exerciseIndex, type ExerciseDef, type PlannedExercise, type Workout } f
 import { incrementFor, phaseFor, programWeek, suggestWeight, warmupSets, DEFAULT_WARMUP, type SetLog, type Side } from '../core/training';
 import { parseDuration } from '../core/units';
 import {
-  getActiveProgram, getLibrary, getPref, getSession, insertSet, lastSetsFor, listSets, setPref, startSession,
+  getActiveProgram, getLibrary, getPref, getSession, insertSet, insertSets, lastSetsFor, listSets, setPref, startSession,
   updateSessionPlan, deleteSet, getSetting, setVariantForExercise, type StoredProgram,
 } from '../db/repo';
+import type { NewSet } from '../db/repo';
 import { db } from '../db/db';
 
 export function defsFor(program?: StoredProgram | null): Map<string, ExerciseDef> {
@@ -27,7 +28,8 @@ export function variantFor(def: ExerciseDef | undefined, plan: PlannedExercise):
   return plan.variant ?? def.variants[0].id;
 }
 
-function createRows(sessionId: number, position: number, plan: PlannedExercise, def: ExerciseDef | undefined, progression: 'double' | 'linear' | 'none') {
+function createRows(sessionId: number, position: number, plan: PlannedExercise, def: ExerciseDef | undefined, progression: 'double' | 'linear' | 'none'): NewSet[] {
+  const out: NewSet[] = [];
   const variantId = variantFor(def, plan);
   const sides = sidesFor(def, plan);
   const last = lastSetsFor(plan.exercise, variantId, sessionId);
@@ -40,13 +42,14 @@ function createRows(sessionId: number, position: number, plan: PlannedExercise, 
       const lastSame = last.find((s) => s.kind === 'work' && s.setIndex === i && s.side === side);
       // Если пора прибавлять, ставим новый вес во все подходы; иначе вес того же подхода в прошлый раз
       const weight = sug.reason === 'increase' || sug.reason === 'reduce' ? sug.weight : lastSame?.weight ?? sug.weight;
-      insertSet({
+      out.push({
         sessionId, exerciseId: plan.exercise, variantId, position, setIndex: i, kind: 'work', side,
         weight: def?.type === 'time' ? null : weight, reps: null, durationS: null, rir: null,
         restPlannedS: rest, restActualS: null, completedAt: null, note: null,
       });
     }
   }
+  return out;
 }
 
 /** Начинает тренировку по программе: применяет вводную фазу или разгрузку, создаёт подходы */
@@ -70,7 +73,7 @@ export function beginWorkout(workoutId: string): number {
   let id = 0;
   db.withTransactionSync(() => {
     id = startSession(sp.id, plan);
-    plan.exercises.forEach((x, i) => createRows(id, i, x, defs.get(x.exercise), sp.program.progression?.type ?? 'double'));
+    insertSets(plan.exercises.flatMap((x, i) => createRows(id, i, x, defs.get(x.exercise), sp.program.progression?.type ?? 'double')));
   });
   return id;
 }
@@ -91,7 +94,7 @@ export function addExercise(sessionId: number, exerciseId: string) {
   const next = { ...s.plan, exercises: [...s.plan.exercises, plan] };
   db.withTransactionSync(() => {
     updateSessionPlan(sessionId, next);
-    createRows(sessionId, next.exercises.length - 1, plan, def, 'double');
+    insertSets(createRows(sessionId, next.exercises.length - 1, plan, def, 'double'));
   });
 }
 

@@ -15,10 +15,50 @@ function open() {
 export const db = new Proxy({} as SQLite.SQLiteDatabase, {
   get(_, key) {
     const d = open();
+    if (WEB) {
+      if (key === 'getAllSync' || key === 'getFirstSync') return cachedRead(d, key);
+      if (key === 'runSync') return (sql: string, ...params: unknown[]) => (invalidate(sql), (d.runSync as (s: string, ...p: unknown[]) => unknown)(sql, ...params));
+      if (key === 'execSync') return (sql: string) => (readCache.clear(), d.execSync(sql));
+      if (key === 'withTransactionSync')
+        return (fn: () => void) => {
+          try {
+            d.withTransactionSync(fn);
+          } catch (e) {
+            readCache.clear();
+            throw e;
+          }
+        };
+    }
     const v = Reflect.get(d, key, d);
     return typeof v === 'function' ? v.bind(d) : v;
   },
 });
+
+// В браузере каждый запрос — это поход в отдельный поток и обратно, в Safari это медленно.
+// Поэтому результаты чтения кешируются, пока не изменится одна из таблиц, из которых они читались.
+const WEB = Platform.OS === 'web';
+type Cached = { tables: string[]; value: unknown };
+const readCache = new Map<string, Cached>();
+const tablesOf = (sql: string) => [...sql.matchAll(/\b(?:FROM|JOIN)\s+([A-Za-z_]+)/gi)].map((m) => m[1].toLowerCase());
+function invalidate(sql: string) {
+  const m = sql.match(/^\s*(?:INSERT(?:\s+OR\s+\w+)?\s+INTO|UPDATE|DELETE\s+FROM|REPLACE\s+INTO)\s+([A-Za-z_]+)/i);
+  if (!m) return readCache.clear();
+  const t = m[1].toLowerCase();
+  for (const [k, c] of readCache) if (c.tables.includes(t)) readCache.delete(k);
+}
+function cachedRead(d: SQLite.SQLiteDatabase, key: 'getAllSync' | 'getFirstSync') {
+  return (sql: string, ...params: unknown[]) => {
+    const k = `${key}\u0000${sql}\u0000${JSON.stringify(params)}`;
+    let c = readCache.get(k);
+    if (!c) {
+      const value = (d[key] as (s: string, ...p: unknown[]) => unknown)(sql, ...params);
+      c = { tables: tablesOf(sql), value };
+      if (c.tables.length && !/^\s*PRAGMA/i.test(sql)) readCache.set(k, c);
+    }
+    // Копия, чтобы случайное изменение результата не испортило кеш
+    return c.value == null ? c.value : structuredClone(c.value);
+  };
+}
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

@@ -129,7 +129,10 @@ export function patchBundledPrograms() {
 
 export type ExercisePref = { variantId: string | null; sides: 'both' | 'each' | null; increment: number | null };
 export function getPref(exerciseId: string): ExercisePref {
-  const r = db.getFirstSync<{ variant_id: string | null; sides: string | null; increment: number | null }>('SELECT * FROM exercise_pref WHERE exercise_id = ?', exerciseId);
+  // Все настройки сразу: их мало, а запрос в веб-версии дорогой (результат кешируется до изменения)
+  const r = db
+    .getAllSync<{ exercise_id: string; variant_id: string | null; sides: string | null; increment: number | null }>('SELECT * FROM exercise_pref')
+    .find((x) => x.exercise_id === exerciseId);
   return { variantId: r?.variant_id ?? null, sides: (r?.sides as ExercisePref['sides']) ?? null, increment: r?.increment ?? null };
 }
 export function setPref(exerciseId: string, patch: Partial<ExercisePref>) {
@@ -225,6 +228,20 @@ export function insertSet(s: NewSet): number {
   notify();
   return id;
 }
+/** Много подходов одним запросом: в веб-версии каждый запрос дорогой */
+export function insertSets(rows: NewSet[]) {
+  if (!rows.length) return;
+  const CHUNK = 60; // ограничение SQLite на число параметров
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    const part = rows.slice(i, i + CHUNK);
+    db.runSync(
+      `INSERT INTO set_log(session_id, exercise_id, variant_id, position, set_index, kind, side, weight, reps, duration_s, rir, rest_planned_s, rest_actual_s, completed_at, note)
+       VALUES ${part.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ')}`,
+      ...part.flatMap((s) => [s.sessionId, s.exerciseId, s.variantId, s.position, s.setIndex, s.kind, s.side, s.weight, s.reps, s.durationS, s.rir, s.restPlannedS, s.restActualS, s.completedAt, s.note]),
+    );
+  }
+  notify();
+}
 export function updateSet(id: number, patch: Partial<NewSet>) {
   const map: Record<string, string> = { variantId: 'variant_id', setIndex: 'set_index', durationS: 'duration_s', restPlannedS: 'rest_planned_s', restActualS: 'rest_actual_s', completedAt: 'completed_at', exerciseId: 'exercise_id', sessionId: 'session_id' };
   const keys = Object.keys(patch) as (keyof NewSet)[];
@@ -244,14 +261,17 @@ export function setVariantForExercise(sessionId: number, position: number, varia
 
 /** Подходы последней завершённой тренировки с этим упражнением и вариантом */
 export function lastSetsFor(exerciseId: string, variantId: string | null, excludeSessionId?: number): SetLog[] {
-  const last = db.getFirstSync<{ session_id: number }>(
-    `SELECT l.session_id FROM set_log l JOIN session s ON s.id = l.session_id
-     WHERE l.exercise_id = ? AND l.variant_id IS ? AND l.completed_at IS NOT NULL AND l.session_id IS NOT ?
-     ORDER BY s.started_at DESC LIMIT 1`,
-    exerciseId, variantId, excludeSessionId ?? -1,
-  );
-  if (!last) return [];
-  return db.getAllSync<SetRow>('SELECT * FROM set_log WHERE session_id = ? AND exercise_id = ? AND variant_id IS ? AND completed_at IS NOT NULL ORDER BY set_index, side', last.session_id, exerciseId, variantId).map(toSet);
+  // Одним запросом: в веб-версии каждый запрос дорогой
+  return db
+    .getAllSync<SetRow>(
+      `SELECT * FROM set_log WHERE exercise_id = ? AND variant_id IS ? AND completed_at IS NOT NULL AND session_id = (
+         SELECT l.session_id FROM set_log l JOIN session s ON s.id = l.session_id
+         WHERE l.exercise_id = ? AND l.variant_id IS ? AND l.completed_at IS NOT NULL AND l.session_id IS NOT ?
+         ORDER BY s.started_at DESC LIMIT 1)
+       ORDER BY set_index, side`,
+      exerciseId, variantId, exerciseId, variantId, excludeSessionId ?? -1,
+    )
+    .map(toSet);
 }
 
 export type HistorySet = SetLog & { startedAt: number; workoutName: string };

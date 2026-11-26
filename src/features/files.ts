@@ -1,6 +1,7 @@
 // Работа с файлами: экспорт в Excel, бэкап, импорт и выгрузка программ.
 // Файл пишется во временную папку, потом открывается системное меню «Поделиться»
 // (Telegram, Google Диск, почта, сохранить на телефон).
+import { Platform } from 'react-native';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
@@ -14,6 +15,7 @@ import docs from '../data/docs.json';
 const stamp = () => new Date().toISOString().slice(0, 10);
 
 async function share(name: string, content: string | Uint8Array, mimeType: string) {
+  if (Platform.OS === 'web') return shareWeb(name, content, mimeType);
   const f = new File(Paths.cache, name);
   if (f.exists) f.delete();
   f.create();
@@ -22,11 +24,34 @@ async function share(name: string, content: string | Uint8Array, mimeType: strin
   await Sharing.shareAsync(f.uri, { mimeType, dialogTitle: name });
 }
 
+// В браузере нет файловой системы Expo: отдаём файл через системное меню «Поделиться», а если его нет — скачиванием
+async function shareWeb(name: string, content: string | Uint8Array, mimeType: string) {
+  const blob = new Blob([content as BlobPart], { type: mimeType });
+  const file = new globalThis.File([blob], name, { type: mimeType });
+  const nav = globalThis.navigator as Navigator & { canShare?: (d: ShareData) => boolean };
+  if (nav?.share && nav.canShare?.({ files: [file] })) {
+    try {
+      await nav.share({ files: [file], title: name });
+      return;
+    } catch (e) {
+      if ((e as Error)?.name === 'AbortError') return;
+    }
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
 export async function pickTextFile(): Promise<{ name: string; text: string } | null> {
   const r = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
   if (r.canceled || !r.assets?.length) return null;
   const a = r.assets[0];
-  const text = await new File(a.uri).text();
+  const text = Platform.OS === 'web' ? await (a.file ? a.file.text() : fetch(a.uri).then((r) => r.text())) : await new File(a.uri).text();
   return { name: a.name, text };
 }
 
