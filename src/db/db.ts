@@ -20,8 +20,29 @@ export const db = new Proxy({} as SQLite.SQLiteDatabase, {
   },
 });
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 export async function prepareDb() {
-  if (Platform.OS === 'web') await SQLite.openDatabaseAsync(NAME);
+  if (Platform.OS !== 'web') return;
+  const g = globalThis as { crossOriginIsolated?: boolean; navigator?: Navigator };
+  // Первая загрузка без изоляции: service worker сейчас сам перезагрузит страницу.
+  // Не трогаем базу, иначе эта страница займёт файлы и новая не сможет их открыть.
+  if (g.crossOriginIsolated === false && g.navigator?.serviceWorker) {
+    for (let i = 0; i < 40 && !g.crossOriginIsolated; i++) await sleep(100);
+  }
+  // Файлы базы может ещё держать прошлая вкладка или прошлая загрузка страницы (Safari отпускает их не сразу)
+  let last: unknown;
+  for (let i = 0; i < 8; i++) {
+    try {
+      await SQLite.openDatabaseAsync(NAME);
+      return;
+    } catch (e) {
+      last = e;
+      if (/SharedArrayBuffer/.test(String(e))) break;
+      await sleep(300 + i * 300);
+    }
+  }
+  throw last;
 }
 
 const MIGRATIONS: string[] = [

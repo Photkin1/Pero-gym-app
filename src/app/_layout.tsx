@@ -61,7 +61,7 @@ export default function RootLayout() {
     if (ready) return;
     dbPromise.then(() => (dbError ? setFail(dbError) : setReady(true)));
     // Если база так и не открылась (например, браузер без нужных функций), не оставляем белый экран
-    const tm = setTimeout(() => !dbReady && setFail(dbError ?? 'База данных не открылась за 15 секунд'), 15000);
+    const tm = setTimeout(() => !dbReady && setFail(dbError ?? 'База данных не открылась за 25 секунд'), 25000);
     return () => clearTimeout(tm);
   }, [ready]);
   const [intro, setIntro] = useState(true);
@@ -102,9 +102,14 @@ function StartError({ text }: { text: string }) {
         {inApp
           ? 'Ссылка открылась внутри другого приложения (Telegram, Instagram и т. п.). Там не работает хранилище, которое нужно Pero. Нажми «…» или «Открыть в браузере», а на iPhone потом «Поделиться» → «На экран Домой».'
           : web
-            ? 'Попробуй обновить страницу. Если не помогло, пришли этот экран разработчику.'
+            ? 'Скорее всего, Pero открыт ещё в одной вкладке. Закрой лишние вкладки и нажми «Обновить». Если не помогло, пришли этот экран разработчику.'
             : 'Перезапусти приложение. Если не помогло, пришли этот экран разработчику.'}
       </Text>
+      {web && (
+        <Text onPress={() => (globalThis as { location?: Location }).location?.reload()} style={{ color: '#fff', backgroundColor: '#2f5bff', alignSelf: 'flex-start', paddingHorizontal: 18, paddingVertical: 11, borderRadius: 12, fontSize: 15, fontWeight: '700', overflow: 'hidden' }}>
+          Обновить
+        </Text>
+      )}
       <Text style={{ color: '#8d93a0', fontSize: 12.5 }} selectable>{`${text}\nisolated: ${isolated}\n${web && typeof navigator !== 'undefined' ? navigator.userAgent : ''}`}</Text>
     </View>
   );
