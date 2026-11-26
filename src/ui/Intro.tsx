@@ -132,7 +132,8 @@ function FeatherIntro({ onDone }: { onDone: () => void }) {
     <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: BG }, wrap]}>
       <Pressable style={st.center} onPress={skip}>
         <View style={{ width: WORD_W, height: LINE_H }}>
-          <Text style={st.word} numberOfLines={1}>pero</Text>
+          {/* Без обрезки: в Safari рукописный шрифт выходит чуть шире расчётного */}
+          <Text style={[st.word, { position: 'absolute', left: 0, top: 0, width: WORD_W * 1.4 }]}>pero</Text>
           <Animated.View style={[st.cover, cover]}>
             <Svg width={40} height={LINE_H} style={{ position: 'absolute', left: -40 }}>
               <Defs>
