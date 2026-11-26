@@ -13,7 +13,8 @@ import { ThemeProvider, useTheme } from '../theme';
 import { FONTS } from '../theme/themes';
 import { ToastHost } from '../ui/kit';
 import { AchievementHost } from '../ui/AchievementHost';
-import { Intro } from '../ui/Intro';
+import { Intro, isNewYearSeason } from '../ui/Intro';
+import { Snow } from '../ui/Snow';
 
 // База готовится до первого кадра: все запросы синхронные и быстрые
 migrate();
@@ -33,6 +34,7 @@ function Shell() {
         <Stack.Screen name="workout/[id]" options={{ animation: 'slide_from_bottom', gestureEnabled: false }} />
         <Stack.Screen name="library" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
       </Stack>
+      {t.dark && isNewYearSeason() && <Snow />}
       <ToastHost />
       <AchievementHost />
     </View>
