@@ -43,8 +43,23 @@ export function Txt({ v = 'body', color, style, children, numberOfLines, center 
 
 // ───────── Нажимаемая область с пружинкой ─────────
 
+// Свойства, которые отвечают за место элемента среди соседей: их должен получить сам Pressable,
+// иначе в строке он сжимается до содержимого и flex: 1 / width у внутреннего блока не работают
+const OUTER_KEYS = ['flex', 'flexGrow', 'flexShrink', 'flexBasis', 'width', 'minWidth', 'maxWidth', 'alignSelf', 'margin', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'marginHorizontal', 'marginVertical', 'position', 'top', 'left', 'right', 'bottom', 'zIndex'] as const;
+
+function splitStyle(style: StyleProp<ViewStyle>) {
+  const flat = (StyleSheet.flatten(style) ?? {}) as Record<string, unknown>;
+  const outer: Record<string, unknown> = {};
+  const inner: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(flat)) ((OUTER_KEYS as readonly string[]).includes(k) ? outer : inner)[k] = v;
+  // Растянутый по главной оси Pressable должен растянуть и содержимое
+  if (outer.flex != null || outer.flexGrow != null) inner.flexGrow = 1;
+  return { outer: outer as ViewStyle, inner: inner as ViewStyle };
+}
+
 export function Press({ onPress, onLongPress, style, children, disabled, haptic = true, scaleTo = 0.97, hitSlop }: { onPress?: () => void; onLongPress?: () => void; style?: StyleProp<ViewStyle>; children: ReactNode; disabled?: boolean; haptic?: boolean; scaleTo?: number; hitSlop?: number }) {
   const s = useSharedValue(1);
+  const { outer, inner } = splitStyle(style);
   const a = useAnimatedStyle(() => ({ transform: [{ scale: s.value }] }));
   return (
     <Pressable
@@ -57,8 +72,9 @@ export function Press({ onPress, onLongPress, style, children, disabled, haptic 
         onPress?.();
       }}
       onLongPress={onLongPress}
+      style={outer}
     >
-      <Animated.View style={[style, a, disabled && { opacity: 0.45 }]}>{children}</Animated.View>
+      <Animated.View style={[inner, a, disabled && { opacity: 0.45 }]}>{children}</Animated.View>
     </Pressable>
   );
 }

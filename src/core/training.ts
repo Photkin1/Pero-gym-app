@@ -57,13 +57,15 @@ export function incrementFor(def: ExerciseDef | undefined, variantId: string | n
  * Все подходы на верхней границе диапазона с запасом не меньше целевого → прибавляем вес.
  * Больше половины подходов ниже нижней границы → предлагаем снизить на шаг.
  */
+const span = (r: { min: number; max: number }) => (r.min === r.max ? `${r.min}` : `${r.min}–${r.max}`);
+
 export function suggestWeight(plan: PlannedExercise, last: SetLog[], increment: number, progression: 'double' | 'linear' | 'none' = 'double'): Suggestion {
   const work = last.filter((s) => s.kind === 'work' && s.weight != null && s.reps != null);
   const range = parseRange(plan.reps);
   const target = parseRange(plan.rir ?? 2);
   if (!work.length) {
     if (plan.start_weight != null) return { weight: plan.start_weight, bump: 0, reason: 'start-weight', text: 'Стартовый вес из программы' };
-    return { weight: null, bump: 0, reason: 'first-time', text: `Подбери вес, чтобы сделать ${range.min}–${range.max} с запасом ${target.min}–${target.max}` };
+    return { weight: null, bump: 0, reason: 'first-time', text: `Подбери вес, чтобы сделать ${span(range)} повторений с запасом ${span(target)}` };
   }
   const top = Math.max(...work.map((s) => s.weight!));
   const atTop = work.filter((s) => s.weight === top);

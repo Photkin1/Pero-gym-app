@@ -120,12 +120,15 @@ export default function Today() {
                   {workout.exercises.length} {plural(workout.exercises.length, 'упражнение', 'упражнения', 'упражнений')} · ~{estimateMin(workout)} мин
                 </Txt>
               </View>
-              {phase?.label && (
-                <View style={{ backgroundColor: t.c.chip, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, maxWidth: 150 }}>
-                  <Text numberOfLines={2} style={{ fontFamily: t.f.semibold, fontSize: 12, color: t.c.warm, textAlign: 'center' }}>{phase.label}{phase.rir !== undefined ? ` · RIR ${phase.rir}` : ''}</Text>
-                </View>
-              )}
             </Row>
+            {phase?.label && (
+              <Row gap={8} style={{ backgroundColor: t.c.chip, borderRadius: t.r.md, paddingHorizontal: 12, paddingVertical: 9 }}>
+                <Icon name="info" size={16} color={t.c.warm} />
+                <Text style={{ flex: 1, fontFamily: t.f.semibold, fontSize: 13, color: t.c.ink }}>
+                  Неделя {week}: {phase.label.charAt(0).toLowerCase() + phase.label.slice(1)}{phase.rir !== undefined ? `, запас ${phase.rir}` : ''}
+                </Text>
+              </Row>
+            )}
             <View style={{ gap: 10 }}>
               {workout.exercises.map((x, i) => {
                 const d = defs.get(x.exercise);

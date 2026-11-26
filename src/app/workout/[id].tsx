@@ -192,7 +192,7 @@ export default function WorkoutScreen() {
     if (edit.field === 'duration') {
       return { title: 'Время', unit: 'с', steps: [5, 15], quick: [range.min, range.max].filter((x, i, a) => a.indexOf(x) === i).map((v) => ({ label: `${v} с`, value: v })), value: edit.row.durationS };
     }
-    return { title: 'Повторения', unit: 'раз', steps: [1], quick: opts.map((v) => ({ label: String(v), value: v })), value: edit.row.reps ?? prev?.reps ?? null };
+    return { title: 'Повторения', unit: 'раз', steps: [1], quick: opts.map((v) => ({ label: String(v), value: v })), value: edit.row.reps ?? prev?.reps ?? range.min };
   })();
 
   return (

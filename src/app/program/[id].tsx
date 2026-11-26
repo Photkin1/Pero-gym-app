@@ -1,6 +1,6 @@
 // Конструктор программы: дни, расписание, упражнения. Все изменения сохраняются сразу.
 import { useEffect, useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 import { useTheme } from '../../theme';
@@ -124,14 +124,15 @@ export default function ProgramEditor() {
           WEEKDAYS.map((wd) => {
             const cur = p.schedule.type === 'weekly' ? p.schedule.days[wd] : undefined;
             return (
-              <Row key={wd} gap={8} style={{ alignItems: 'flex-start' }}>
-                <Text style={{ width: 28, fontFamily: t.f.bold, color: cur ? t.c.ink : t.c.faint, paddingTop: 7 }}>{WEEKDAY_RU[wd]}</Text>
-                <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+              <Row key={wd} gap={8}>
+                <Text style={{ width: 28, fontFamily: t.f.bold, color: cur ? t.c.ink : t.c.faint }}>{WEEKDAY_RU[wd]}</Text>
+                {/* Одна строка на день: листается вбок, если тренировок много */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ gap: 6, paddingRight: 8 }}>
                   <Chip small label="Отдых" on={!cur} onPress={() => update((d) => { if (d.schedule.type === 'weekly') delete d.schedule.days[wd]; return d; })} />
                   {p.workouts.map((x) => (
                     <Chip key={x.id} small label={x.name} on={cur === x.id} onPress={() => update((d) => { if (d.schedule.type === 'weekly') d.schedule.days[wd] = x.id; return d; })} />
                   ))}
-                </View>
+                </ScrollView>
               </Row>
             );
           })

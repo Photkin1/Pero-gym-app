@@ -13,6 +13,8 @@ import { clock, num, parseNum, plural } from '../../core/units';
 import { Btn, Card, Chip, Field, IconBtn, Row, Screen, SectionTitle, Segmented, Txt, Empty, toast } from '../../ui/kit';
 import { ColumnChart, Heatmap, LineChart, ZoneBars, dayKey } from '../../ui/charts';
 import { Icon } from '../../ui/Icon';
+import { computeStreak } from '../../core/streak';
+import { weeklyGoal } from '../../features/achievements';
 
 const DAY = 86400000;
 const weekStart = (ms: number) => {
@@ -46,16 +48,8 @@ export default function Stats() {
   const last30 = sessions.filter((s) => s.startedAt > Date.now() - 30 * DAY).length;
   const tonnageWeek = sessions.filter((s) => s.startedAt >= thisWeek).reduce((a, s) => a + s.tonnage, 0);
   const tonnagePrev = sessions.filter((s) => s.startedAt >= thisWeek - 7 * DAY && s.startedAt < thisWeek).reduce((a, s) => a + s.tonnage, 0);
-  const streak = (() => {
-    const weeks = new Set(sessions.map((s) => weekStart(s.startedAt)));
-    let n = 0;
-    let w = weeks.has(thisWeek) ? thisWeek : thisWeek - 7 * DAY;
-    while (weeks.has(w)) {
-      n++;
-      w -= 7 * DAY;
-    }
-    return n;
-  })();
+  // Та же серия, что на главной: недели, где выполнен план по тренировкам
+  const streak = computeStreak(sessions.map((x) => x.startedAt), weeklyGoal(program?.program)).weeks;
   const days = useMemo(() => {
     const m = new Map<string, number>();
     for (const s of sessions) m.set(dayKey(s.startedAt), (m.get(dayKey(s.startedAt)) ?? 0) + 1);
@@ -134,7 +128,7 @@ export default function Stats() {
       <Row gap={8}>
         <Kpi label="за 30 дней" value={String(last30)} sub={plural(last30, 'тренировка', 'тренировки', 'тренировок')} />
         <Kpi label="тоннаж недели" value={`${num(tonnageWeek / 1000)} т`} sub={tonnagePrev ? `${tonnageWeek >= tonnagePrev ? '+' : ''}${num((tonnageWeek - tonnagePrev) / 1000)} т` : ' '} good={tonnageWeek >= tonnagePrev} />
-        <Kpi label="недель подряд" value={String(streak)} sub={streak ? 'без пропусков' : ' '} />
+        <Kpi label={`${plural(streak, 'неделя', 'недели', 'недель')} подряд`} value={String(streak)} sub="по плану" />
       </Row>
 
       <Card style={{ gap: 10 }}>

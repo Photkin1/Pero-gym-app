@@ -16,7 +16,7 @@ export function Icon({ name, size = 22, color, strokeWidth = 2 }: { name: IconNa
           case 'list': return <><Rect {...p} x={4} y={3} width={16} height={18} rx={3} /><Path {...p} d="M8 8h8M8 12h8M8 16h5" /></>;
           case 'chart': return <Path {...p} d="M4 20V11M10 20V5M16 20v-6M3 20h18" />;
           case 'clock': return <><Circle {...p} cx={12} cy={12} r={9} /><Path {...p} d="M12 7v5l3 2" /></>;
-          case 'gear': return <><Circle {...p} cx={12} cy={12} r={3} /><Path {...p} d="M12 2.5v3M12 18.5v3M4.2 6l2.6 1.5M17.2 16.5l2.6 1.5M4.2 18l2.6-1.5M17.2 7.5 19.8 6" /></>;
+          case 'gear': return <><Circle {...p} cx={12} cy={12} r={3} /><Path {...p} d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></>;
           case 'plus': return <Path {...p} d="M12 5v14M5 12h14" />;
           case 'minus': return <Path {...p} d="M5 12h14" />;
           case 'check': return <Path {...p} d="m5 12.5 4.5 4.5L19 7.5" />;
