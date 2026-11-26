@@ -15,6 +15,7 @@ import { ToastHost } from '../ui/kit';
 import { AchievementHost } from '../ui/AchievementHost';
 import { Intro, isNewYearSeason } from '../ui/Intro';
 import { Snow } from '../ui/Snow';
+import { ProfileSetup, profileDone } from '../ui/ProfileSetup';
 
 // База готовится до первого кадра: все запросы синхронные и быстрые.
 // В веб-версии сначала ждём, пока загрузится SQLite-воркер.
@@ -55,6 +56,10 @@ export default function RootLayout() {
   }, [ready]);
   const [intro, setIntro] = useState(true);
   const endIntro = useCallback(() => setIntro(false), []);
+  const [profile, setProfile] = useState(false);
+  useEffect(() => {
+    if (ready) setProfile(!profileDone());
+  }, [ready]);
   useEffect(() => {
     if (loaded && ready) SplashScreen.hideAsync().catch(() => {});
   }, [loaded, ready]);
@@ -64,6 +69,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeProvider>
           <Shell />
+          {profile && !intro && <ProfileSetup onDone={() => setProfile(false)} />}
           {intro && <Intro onDone={endIntro} />}
         </ThemeProvider>
       </SafeAreaProvider>

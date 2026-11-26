@@ -129,7 +129,7 @@ export function BodySection({ body }: { body: BodyMetric[] }) {
   );
 }
 
-const HOWTO: Record<'weight' | Measure, string> = {
+export const HOWTO: Record<'weight' | Measure, string> = {
   weight: 'Взвешивайся утром, после туалета и до еды, в одной и той же одежде или без неё.',
   waist: 'Талию меряй по пупку, на спокойном выдохе, не втягивая живот.',
   chest: 'Грудь — по самой широкой части, под мышками, руки опущены.',
@@ -183,11 +183,24 @@ function Spark({ pts, color }: { pts: Point[]; color: string }) {
 
 // ───────── Ввод замера ─────────
 
-type Draft = Record<'weight' | Measure, string>;
-const FIELDS: { k: 'weight' | Measure; label: string; unit: string; step: number }[] = [
+export type Draft = Record<'weight' | Measure, string>;
+export const FIELDS: { k: 'weight' | Measure; label: string; unit: string; step: number }[] = [
   { k: 'weight', label: 'Вес', unit: 'кг', step: 0.1 },
   ...MEASURES.map((m) => ({ k: m, label: MEASURE_RU[m], unit: 'см', step: 0.5 })),
 ];
+
+/** Черновик из полей ввода в запись замера; строка — ошибка */
+export function draftToPatch(draft: Draft): Partial<Record<'weight' | Measure, number>> | string {
+  const patch: Partial<Record<'weight' | Measure, number>> = {};
+  for (const f of FIELDS) {
+    const v = parseNum(draft[f.k]);
+    if (v == null) continue;
+    const ok = f.k === 'weight' ? v >= 30 && v <= 300 : v >= 10 && v <= 250;
+    if (!ok) return `Проверь поле «${f.label}»`;
+    patch[f.k] = v;
+  }
+  return patch;
+}
 
 function MeasureSheet({ open, onClose, body }: { open: boolean; onClose: () => void; body: BodyMetric[] }) {
   const lastOf = (k: 'weight' | Measure) => {
@@ -208,14 +221,8 @@ function MeasureSheet({ open, onClose, body }: { open: boolean; onClose: () => v
 
   const save = () => {
     if (!draft) return;
-    const patch: Partial<Record<'weight' | Measure, number>> = {};
-    for (const f of FIELDS) {
-      const v = parseNum(draft[f.k]);
-      if (v == null) continue;
-      const ok = f.k === 'weight' ? v >= 30 && v <= 300 : v >= 10 && v <= 250;
-      if (!ok) return toast(`Проверь поле «${f.label}»`, 'info');
-      patch[f.k] = v;
-    }
+    const patch = draftToPatch(draft);
+    if (typeof patch === 'string') return toast(patch, 'info');
     if (!Object.keys(patch).length) return toast('Заполни хотя бы вес', 'info');
     upsertBody(dayKey(Date.now()), patch);
     success();
@@ -245,7 +252,7 @@ function MeasureSheet({ open, onClose, body }: { open: boolean; onClose: () => v
   );
 }
 
-function Stepper({ label, unit, value, onChange, step, bold, hint }: { label: string; unit: string; value: string; onChange: (v: string) => void; step: number; bold?: boolean; hint: string }) {
+export function Stepper({ label, unit, value, onChange, step, bold, hint }: { label: string; unit: string; value: string; onChange: (v: string) => void; step: number; bold?: boolean; hint?: string }) {
   const t = useTheme();
   const [info, setInfo] = useState(false);
   const bump = (dir: number) => {
@@ -261,15 +268,15 @@ function Stepper({ label, unit, value, onChange, step, bold, hint }: { label: st
   return (
     <View style={{ gap: 6 }}>
     <Row gap={8}>
-      <Press onPress={() => setInfo(!info)} hitSlop={6} style={{ flex: 1 }}>
+      <Press onPress={() => hint && setInfo(!info)} hitSlop={6} style={{ flex: 1 }} haptic={!!hint}>
         <Row gap={6}>
           <Text style={{ fontFamily: bold ? t.f.bold : t.f.medium, fontSize: 15, color: t.c.ink }}>
             {label}
             <Text style={{ color: t.c.muted, fontFamily: t.f.body }}>, {unit}</Text>
           </Text>
-          <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: info ? t.c.accent : t.c.faint, backgroundColor: info ? t.c.accent : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+          {hint && <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: info ? t.c.accent : t.c.faint, backgroundColor: info ? t.c.accent : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
             <Text style={{ fontFamily: t.f.bold, fontSize: 11, lineHeight: 13, color: info ? t.c.onAccent : t.c.muted }}>i</Text>
-          </View>
+          </View>}
         </Row>
       </Press>
       {btn(-1)}
@@ -284,7 +291,7 @@ function Stepper({ label, unit, value, onChange, step, bold, hint }: { label: st
       />
       {btn(1)}
     </Row>
-    {info && (
+    {info && hint && (
       <Animated.View entering={FadeIn.duration(180)} style={{ backgroundColor: t.c.chip, borderRadius: t.r.md, padding: 10 }}>
         <Txt v="small" color={t.c.ink}>{hint}</Txt>
       </Animated.View>

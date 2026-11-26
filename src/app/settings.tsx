@@ -8,7 +8,7 @@ import { getSetting, setSetting } from '../db/repo';
 import { exportExcel, importBackup, shareAiKit, shareBackup } from '../features/files';
 import { startRest, stopRest } from '../features/timer';
 import { num } from '../core/units';
-import { Btn, Card, Chip, Press, Row, Screen, SectionTitle, Sheet, Txt, toast } from '../ui/kit';
+import { Btn, Card, Chip, Field, Press, Row, Screen, SectionTitle, Sheet, Txt, toast } from '../ui/kit';
 import { Icon } from '../ui/Icon';
 import { RirExplainer } from '../ui/workout';
 
@@ -75,6 +75,9 @@ export default function Settings() {
         <Btn kind="secondary" small icon="timer" title="Проверить сигнал таймера (5 с)" onPress={async () => { await startRest(-1, 5, 'проверка'); setTimeout(() => stopRest(), 9000); }} />
       </Card>
 
+      <SectionTitle>Профиль</SectionTitle>
+      <ProfileCard />
+
       <SectionTitle>Данные</SectionTitle>
       <Card style={{ gap: 10 }}>
         <Txt v="small">Всё хранится только на этом телефоне. Делай бэкап раз в пару недель и кидай его себе в Telegram или на Google Диск.</Txt>
@@ -101,5 +104,35 @@ export default function Settings() {
         <Btn kind="danger" icon="import" title="Выбрать файл и заменить" onPress={() => { setRestoreOpen(false); run(async () => { if (await importBackup()) toast('Данные восстановлены', 'check'); }); }} />
       </Sheet>
     </Screen>
+  );
+}
+
+function ProfileCard() {
+  const sex = useLive(() => getSetting<'m' | 'f' | null>('profile.sex', null));
+  const height = useLive(() => getSetting<number | null>('profile.height', null));
+  const [h, setH] = useState('');
+  const saveH = () => {
+    const v = Number(h.replace(',', '.'));
+    if (!v || v < 120 || v > 230) return toast('Рост в сантиметрах, например 180', 'info');
+    setSetting('profile.height', Math.round(v));
+    setH('');
+    toast('Рост сохранён', 'check');
+  };
+  return (
+    <Card style={{ gap: 10 }}>
+      <Txt v="label">Пол (для фигуры на карте мышц)</Txt>
+      <Row gap={8}>
+        <Chip label="Мужской" on={sex === 'm'} onPress={() => setSetting('profile.sex', 'm')} />
+        <Chip label="Женский" on={sex === 'f'} onPress={() => setSetting('profile.sex', 'f')} />
+      </Row>
+      <Txt v="label">Рост, см</Txt>
+      <Row gap={8}>
+        <View style={{ flex: 1 }}>
+          <Field value={h} onChangeText={setH} keyboardType="number-pad" placeholder={height ? String(height) : '180'} onSubmitEditing={saveH} />
+        </View>
+        <Btn title="Сохранить" kind="secondary" onPress={saveH} />
+      </Row>
+      <Txt v="small">Вес и замеры — во вкладке «Прогресс», раздел «Тело».</Txt>
+    </Card>
   );
 }
