@@ -42,3 +42,7 @@ yarn-error.*
 
 # сгенерированные данные (npm run gen)
 src/data/*.json
+
+# нативные папки генерируются (expo prebuild)
+android/
+ios/

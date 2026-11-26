@@ -13,6 +13,7 @@ import { addExercise, addSet, addWarmups, cleanupSession, defsFor, removeExercis
 import { setPickHandler } from '../../features/picker';
 import { getRest, startRest, stopRest } from '../../features/timer';
 import { checkAchievements } from '../../features/achievements';
+import { refreshWidget } from '../../widget/handler';
 import { e1rm, incrementFor, suggestWeight, type SetLog } from '../../core/training';
 import { clock, num, parseRange, plural } from '../../core/units';
 import { Btn, Card, Field, IconBtn, Press, Row, Sheet, Txt, success, thud, toast } from '../../ui/kit';
@@ -170,6 +171,7 @@ export default function WorkoutScreen() {
     success();
     setFinishOpen(false);
     checkAchievements();
+    refreshWidget();
     router.replace(`/history/${sessionId}?fresh=1`);
   };
 

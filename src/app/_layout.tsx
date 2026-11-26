@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -13,6 +13,7 @@ import { ThemeProvider, useTheme } from '../theme';
 import { FONTS } from '../theme/themes';
 import { ToastHost } from '../ui/kit';
 import { AchievementHost } from '../ui/AchievementHost';
+import { Intro } from '../ui/Intro';
 
 // База готовится до первого кадра: все запросы синхронные и быстрые
 migrate();
@@ -40,6 +41,8 @@ function Shell() {
 
 export default function RootLayout() {
   const [loaded] = useFonts(FONTS);
+  const [intro, setIntro] = useState(true);
+  const endIntro = useCallback(() => setIntro(false), []);
   useEffect(() => {
     if (loaded) SplashScreen.hideAsync().catch(() => {});
   }, [loaded]);
@@ -49,6 +52,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeProvider>
           <Shell />
+          {intro && <Intro onDone={endIntro} />}
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
