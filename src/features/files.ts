@@ -146,7 +146,7 @@ export async function exportExcel() {
   });
 
   // 5. Вес тела
-  const bodyRows = listBody().map((b) => ({ 'Дата': new Date(b.date), 'Вес, кг': b.weight ?? '', 'Талия, см': b.waist ?? '', 'Заметка': b.note ?? '' }));
+  const bodyRows = listBody().map((b) => ({ 'Дата': new Date(b.date), 'Вес, кг': b.weight ?? '', 'Талия, см': b.waist ?? '', 'Грудь, см': b.chest ?? '', 'Бицепс, см': b.arm ?? '', 'Ягодицы, см': b.hips ?? '', 'Бедро, см': b.thigh ?? '', 'Заметка': b.note ?? '' }));
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, sheet(sessRows, [17, 16, 10, 8, 10, 10, 10, 10, 40]), 'Тренировки');

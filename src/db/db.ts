@@ -97,6 +97,13 @@ const MIGRATIONS: string[] = [
   ALTER TABLE session ADD COLUMN mood INTEGER;     -- самочувствие 1–5
   ALTER TABLE session ADD COLUMN fatigue INTEGER;  -- усталость 1–5
   `,
+  // 3: замеры тела, см
+  `
+  ALTER TABLE body_metric ADD COLUMN chest REAL;
+  ALTER TABLE body_metric ADD COLUMN arm REAL;    -- бицепс в напряжении
+  ALTER TABLE body_metric ADD COLUMN hips REAL;   -- ягодицы
+  ALTER TABLE body_metric ADD COLUMN thigh REAL;
+  `,
 ];
 
 export function migrate() {

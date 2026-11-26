@@ -239,14 +239,21 @@ export function exercisesWithHistory(): { exerciseId: string; sessions: number; 
 
 // ───────── Вес тела ─────────
 
-export type BodyMetric = { date: string; weight: number | null; waist: number | null; note: string | null };
+export const MEASURES = ['waist', 'chest', 'arm', 'hips', 'thigh'] as const;
+export type Measure = (typeof MEASURES)[number];
+export const MEASURE_RU: Record<Measure, string> = { waist: 'Талия', chest: 'Грудь', arm: 'Бицепс', hips: 'Ягодицы', thigh: 'Бедро' };
+export type BodyMetric = { date: string; weight: number | null; note: string | null } & Record<Measure, number | null>;
 export function listBody(): BodyMetric[] {
   return db.getAllSync<BodyMetric>('SELECT * FROM body_metric ORDER BY date');
 }
-export function upsertBody(m: BodyMetric) {
+/** Записывает только переданные поля, остальные за этот день не трогает */
+export function upsertBody(date: string, patch: Partial<Omit<BodyMetric, 'date'>>) {
+  const cols = Object.keys(patch).filter((k) => ['weight', 'note', ...MEASURES].includes(k));
+  if (!cols.length) return;
+  const vals = cols.map((k) => (patch as Record<string, number | string | null>)[k] ?? null);
   db.runSync(
-    'INSERT INTO body_metric(date, weight, waist, note) VALUES (?, ?, ?, ?) ON CONFLICT(date) DO UPDATE SET weight = excluded.weight, waist = excluded.waist, note = excluded.note',
-    m.date, m.weight, m.waist, m.note,
+    `INSERT INTO body_metric(date, ${cols.join(', ')}) VALUES (?, ${cols.map(() => '?').join(', ')}) ON CONFLICT(date) DO UPDATE SET ${cols.map((c) => `${c} = excluded.${c}`).join(', ')}`,
+    date, ...vals,
   );
   notify();
 }

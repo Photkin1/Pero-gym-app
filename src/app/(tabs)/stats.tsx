@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useTheme } from '../../theme';
 import { useLive } from '../../db/hooks';
-import { exercisesWithHistory, getActiveProgram, listBody, listSessions, setsBetween, setsForExercise, upsertBody } from '../../db/repo';
+import { exercisesWithHistory, getActiveProgram, getSetting, listBody, listSessions, setsBetween, setsForExercise, upsertBody } from '../../db/repo';
 import { defsFor } from '../../features/session';
 import { exportExcel } from '../../features/files';
 import { MUSCLE_RU, MUSCLE_ZONE, e1rm, plannedWeeklySets, setsPerMuscle } from '../../core/training';
@@ -13,6 +13,7 @@ import { clock, num, parseNum, plural } from '../../core/units';
 import { Btn, Card, Chip, Field, IconBtn, Row, Screen, SectionTitle, Segmented, Txt, Empty, toast } from '../../ui/kit';
 import { ColumnChart, Heatmap, LineChart, ZoneBars, dayKey } from '../../ui/charts';
 import { Icon } from '../../ui/Icon';
+import { BodyMap, type Sex } from '../../ui/BodyMap';
 import { computeStreak } from '../../core/streak';
 import { weeklyGoal } from '../../features/achievements';
 
@@ -72,12 +73,16 @@ export default function Stats() {
   }, [exSets]);
 
   // Объём недели по мышцам против плана
+  const factMap = useMemo(() => setsPerMuscle(weekSets, defs), [weekSets, defs]);
+  const planMap = useMemo(() => (program ? plannedWeeklySets(program.program, defs) : new Map<Muscle, number>()), [program, defs]);
+  const [bodyMode, setBodyMode] = useState<'fact' | 'plan'>('fact');
+  const sex = useLive(() => getSetting<Sex>('profile.sex', 'm'));
   const volRows = useMemo(() => {
-    const fact = setsPerMuscle(weekSets, defs);
-    const plan = program ? plannedWeeklySets(program.program, defs) : new Map<Muscle, number>();
+    const fact = factMap;
+    const plan = planMap;
     const keys = new Set([...fact.keys(), ...[...plan.entries()].filter(([, v]) => v >= 2).map(([k]) => k)]);
     return [...keys].map((k) => ({ label: MUSCLE_RU[k], value: fact.get(k) ?? 0, plan: plan.get(k), zone: MUSCLE_ZONE[k] })).sort((a, b) => (b.plan ?? 0) - (a.plan ?? 0) || b.value - a.value);
-  }, [weekSets, defs, program]);
+  }, [factMap, planMap]);
 
   const tonnageWeeks = useMemo(() => {
     return Array.from({ length: 8 }, (_, i) => {
@@ -107,7 +112,7 @@ export default function Stats() {
   const saveBw = () => {
     const v = parseNum(bw);
     if (!v || v < 30 || v > 300) return toast('Введи вес в килограммах', 'info');
-    upsertBody({ date: dayKey(Date.now()), weight: v, waist: null, note: null });
+    upsertBody(dayKey(Date.now()), { weight: v });
     setBw('');
     toast('Вес записан', 'check');
   };
@@ -130,6 +135,22 @@ export default function Stats() {
         <Kpi label="тоннаж недели" value={`${num(tonnageWeek / 1000)} т`} sub={tonnagePrev ? `${tonnageWeek >= tonnagePrev ? '+' : ''}${num((tonnageWeek - tonnagePrev) / 1000)} т` : ' '} good={tonnageWeek >= tonnagePrev} />
         <Kpi label={`${plural(streak, 'неделя', 'недели', 'недель')} подряд`} value={String(streak)} sub="по плану" />
       </Row>
+
+      <Card style={{ gap: 12 }}>
+        <Row>
+          <Txt v="label" style={{ flex: 1 }}>Мышцы за неделю</Txt>
+          <Txt v="small">{bodyMode === 'fact' ? `${weekSets.filter((x) => x.kind === 'work' && x.completedAt).length} подходов` : 'по программе'}</Txt>
+        </Row>
+        <Segmented value={bodyMode} onChange={setBodyMode} options={[{ id: 'fact', label: 'Сделано' }, { id: 'plan', label: 'План' }]} />
+        <BodyMap load={bodyMode === 'fact' ? factMap : planMap} mode={bodyMode === 'fact' ? 'heat' : 'zones'} sex={sex} height={290} />
+        {bodyMode === 'plan' && (
+          <Row gap={14} style={{ justifyContent: 'center' }}>
+            {[['#7f9bff', 'мало'], [t.c.good, 'в зоне роста'], [t.c.warm, 'много']].map(([c, l]) => (
+              <Row key={l} gap={5}><View style={{ width: 10, height: 10, borderRadius: 3, backgroundColor: c }} /><Txt v="small">{l}</Txt></Row>
+            ))}
+          </Row>
+        )}
+      </Card>
 
       <Card style={{ gap: 10 }}>
         <Row>
