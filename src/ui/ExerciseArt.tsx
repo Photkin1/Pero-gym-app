@@ -1,6 +1,11 @@
-// Обложка упражнения: рисунок снаряда и подсветка рабочей мышцы.
-// Своя графика, без чужих картинок. Фото и видео техники открываются по кнопке «Как делать».
+// Обложка упражнения. Если есть фото (начало и конец движения), показываем его:
+// в списках первый кадр, на странице упражнения кадры плавно сменяют друг друга.
+// Для своих упражнений без фото рисуем значок: снаряд и подсвеченная рабочая зона.
+import { useEffect } from 'react';
+import { Image, View } from 'react-native';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import Svg, { Circle, Path, Rect, G } from 'react-native-svg';
+import { photosFor } from './exercisePhotos';
 import type { ExerciseDef, Muscle } from '../core/program';
 import { useTheme } from '../theme';
 
@@ -22,6 +27,43 @@ const ZONE: Partial<Record<Muscle, 'upper' | 'mid' | 'lower' | 'arm'>> = {
 };
 
 export function ExerciseArt({ def, variantId, size = 48 }: { def?: ExerciseDef; variantId?: string | null; size?: number }) {
+  const t = useTheme();
+  const photo = photosFor(def?.id, variantId);
+  if (photo) {
+    return (
+      <View style={{ width: size, height: size, borderRadius: size > 60 ? 18 : 12, overflow: 'hidden', backgroundColor: t.c.chip }}>
+        <Image source={photo[1]} style={{ width: size, height: size }} resizeMode="cover" />
+      </View>
+    );
+  }
+  return <ExerciseGlyph def={def} variantId={variantId} size={size} />;
+}
+
+/** Большое фото на странице упражнения: кадры «начало» и «конец» плавно сменяются, как короткое видео */
+export function ExercisePhoto({ def, variantId }: { def?: ExerciseDef; variantId?: string | null }) {
+  const t = useTheme();
+  const photo = photosFor(def?.id, variantId);
+  const p = useSharedValue(0);
+  useEffect(() => {
+    const ease = Easing.inOut(Easing.cubic);
+    p.value = 0;
+    p.value = withRepeat(withSequence(withDelay(900, withTiming(1, { duration: 700, easing: ease })), withDelay(900, withTiming(0, { duration: 700, easing: ease }))), -1);
+  }, [p, photo]);
+  const top = useAnimatedStyle(() => ({ opacity: p.value }));
+  if (!photo) return null;
+  return (
+    <View style={{ width: '100%', aspectRatio: 3 / 2, borderRadius: t.r.lg, overflow: 'hidden', backgroundColor: t.c.chip }}>
+      <Image source={photo[0]} style={{ position: 'absolute', width: '100%', height: '100%' }} resizeMode="cover" />
+      <Animated.Image source={photo[1]} style={[{ position: 'absolute', width: '100%', height: '100%' }, top]} resizeMode="cover" />
+    </View>
+  );
+}
+
+export function hasPhoto(def?: ExerciseDef, variantId?: string | null) {
+  return !!photosFor(def?.id, variantId);
+}
+
+function ExerciseGlyph({ def, variantId, size = 48 }: { def?: ExerciseDef; variantId?: string | null; size?: number }) {
   const t = useTheme();
   const gear = gearOf(def, variantId ?? null);
   const zone = ZONE[def?.muscles.primary[0] ?? 'chest'] ?? 'upper';

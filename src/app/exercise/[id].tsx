@@ -9,7 +9,7 @@ import { defsFor } from '../../features/session';
 import { MUSCLE_RU, e1rm, incrementFor } from '../../core/training';
 import { num } from '../../core/units';
 import { Btn, Card, Chip, Row, Screen, SectionTitle, Segmented, Txt } from '../../ui/kit';
-import { ExerciseArt } from '../../ui/ExerciseArt';
+import { ExerciseArt, ExercisePhoto, hasPhoto } from '../../ui/ExerciseArt';
 import { LineChart } from '../../ui/charts';
 import { Icon } from '../../ui/Icon';
 
@@ -56,7 +56,7 @@ export default function ExerciseScreen() {
   return (
     <Screen back title={def.name} subtitle={[...def.muscles.primary.map((m) => MUSCLE_RU[m]), ...(def.muscles.secondary ?? []).map((m) => MUSCLE_RU[m].toLowerCase())].join(', ')}>
       <Animated.View entering={FadeInDown.duration(350)} style={{ alignItems: 'center', paddingVertical: 4 }}>
-        <ExerciseArt def={def} variantId={variant} size={132} />
+        {hasPhoto(def, variant) ? <ExercisePhoto def={def} variantId={variant} /> : <ExerciseArt def={def} variantId={variant} size={132} />}
       </Animated.View>
 
       {def.variants && def.variants.length > 1 && (
