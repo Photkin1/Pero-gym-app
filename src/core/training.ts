@@ -138,6 +138,18 @@ export function plannedWeeklySets(p: Program, defs: Map<string, ExerciseDef>): M
   return out;
 }
 
+/**
+ * Целевой недельный объём по мышцам, рабочих подходов (вспомогательная мышца = 0,5).
+ * Крупные мышцы: 10–20 (Schoenfeld 2017, Pelland 2024). Дельты, руки, икры растут и с 8.
+ * Передняя дельта, предплечья, приводящие и т. п. получают нагрузку в базовых движениях,
+ * отдельная работа на них по желанию, поэтому планка ниже.
+ */
+export const MUSCLE_ZONE: Record<Muscle, [number, number]> = {
+  chest: [10, 20], lats: [10, 20], upper_back: [10, 20], quads: [10, 20], hamstrings: [10, 20], glutes: [10, 20],
+  side_delts: [8, 20], rear_delts: [8, 20], biceps: [8, 20], triceps: [8, 20], calves: [8, 20],
+  front_delts: [4, 16], abs: [4, 16], traps: [2, 16], lower_back: [2, 12], forearms: [2, 12], adductors: [2, 12], abductors: [2, 12],
+};
+
 export const MUSCLE_RU: Record<Muscle, string> = {
   chest: 'Грудь', lats: 'Широчайшие', upper_back: 'Середина спины', lower_back: 'Поясница', traps: 'Трапеции',
   front_delts: 'Передняя дельта', side_delts: 'Средняя дельта', rear_delts: 'Задняя дельта', biceps: 'Бицепс',

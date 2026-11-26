@@ -7,7 +7,7 @@ import { useLive } from '../../db/hooks';
 import { exercisesWithHistory, getActiveProgram, listBody, listSessions, setsBetween, setsForExercise, upsertBody } from '../../db/repo';
 import { defsFor } from '../../features/session';
 import { exportExcel } from '../../features/files';
-import { MUSCLE_RU, e1rm, plannedWeeklySets, setsPerMuscle } from '../../core/training';
+import { MUSCLE_RU, MUSCLE_ZONE, e1rm, plannedWeeklySets, setsPerMuscle } from '../../core/training';
 import type { Muscle } from '../../core/program';
 import { clock, num, parseNum, plural } from '../../core/units';
 import { Btn, Card, Chip, Field, IconBtn, Row, Screen, SectionTitle, Segmented, Txt, Empty, toast } from '../../ui/kit';
@@ -76,7 +76,7 @@ export default function Stats() {
     const fact = setsPerMuscle(weekSets, defs);
     const plan = program ? plannedWeeklySets(program.program, defs) : new Map<Muscle, number>();
     const keys = new Set([...fact.keys(), ...[...plan.entries()].filter(([, v]) => v >= 2).map(([k]) => k)]);
-    return [...keys].map((k) => ({ label: MUSCLE_RU[k], value: fact.get(k) ?? 0, plan: plan.get(k) })).sort((a, b) => (b.plan ?? 0) - (a.plan ?? 0) || b.value - a.value);
+    return [...keys].map((k) => ({ label: MUSCLE_RU[k], value: fact.get(k) ?? 0, plan: plan.get(k), zone: MUSCLE_ZONE[k] })).sort((a, b) => (b.plan ?? 0) - (a.plan ?? 0) || b.value - a.value);
   }, [weekSets, defs, program]);
 
   const tonnageWeeks = useMemo(() => {
@@ -183,7 +183,7 @@ export default function Stats() {
               <IconBtn name="chevron" size={34} onPress={() => setWeekOffset((x) => Math.max(0, x - 1))} color={weekOffset ? t.c.ink : t.c.faint} label="Неделя вперёд" />
             </Row>
             {volRows.length ? <ZoneBars rows={volRows} /> : <Txt v="small" center>За эту неделю подходов нет</Txt>}
-            <Txt v="small">Сделано / по плану. Зелёная зона 10–20 подходов в неделю.</Txt>
+            <Txt v="small">Сделано / по плану. Зелёная зона — нужный для роста объём, у каждой мышцы свой.</Txt>
           </Card>
           <Card style={{ gap: 10 }}>
             <Txt v="label">Тоннаж по неделям, тонн</Txt>

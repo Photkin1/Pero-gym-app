@@ -7,7 +7,7 @@ import { useLive } from '../../db/hooks';
 import { activateProgram, deleteProgram, getLibrary, listPrograms, saveProgram } from '../../db/repo';
 import { exerciseIndex, parseProgram, WEEKDAYS, type ProgramIssue } from '../../core/program';
 import { emptyProgram } from '../../core/templates';
-import { MUSCLE_RU, plannedWeeklySets, WEEKDAY_RU } from '../../core/training';
+import { MUSCLE_RU, MUSCLE_ZONE, plannedWeeklySets, WEEKDAY_RU } from '../../core/training';
 import { plural, rangeLabel } from '../../core/units';
 import { pickTextFile, shareAiKit, shareProgram } from '../../features/files';
 import { Btn, Card, Chip, IconBtn, Row, Screen, SectionTitle, Sheet, Txt, toast } from '../../ui/kit';
@@ -31,7 +31,7 @@ export default function ProgramTab() {
   const volume = useMemo(() => {
     if (!active) return [];
     const m = plannedWeeklySets(active.program, defs);
-    return [...m.entries()].filter(([, v]) => v >= 2).sort((a, b) => b[1] - a[1]).map(([k, v]) => ({ label: MUSCLE_RU[k], value: v }));
+    return [...m.entries()].filter(([, v]) => v >= 2).sort((a, b) => b[1] - a[1]).map(([k, v]) => ({ label: MUSCLE_RU[k], value: v, zone: MUSCLE_ZONE[k] }));
   }, [active, defs]);
 
   const importFile = async () => {
@@ -107,7 +107,7 @@ export default function ProgramTab() {
 
           <SectionTitle>Подходов в неделю на мышцу</SectionTitle>
           <Card style={{ gap: 10 }}>
-            <Txt v="small">Зелёная зона 10–20 рабочих подходов в неделю: в этом диапазоне рост мышц лучший для большинства (Schoenfeld 2017, Pelland 2024). Вспомогательная мышца считается за половину подхода.</Txt>
+            <Txt v="small">Зелёная зона: сколько рабочих подходов в неделю нужно для роста. Крупным мышцам 10–20 (Schoenfeld 2017, Pelland 2024), дельтам, рукам и икрам от 8. Передней дельте, предплечьям, приводящим хватает базовых упражнений, им планка ниже. Вспомогательная мышца считается за половину подхода.</Txt>
             <ZoneBars rows={volume} />
           </Card>
         </Animated.View>

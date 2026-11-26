@@ -78,12 +78,13 @@ export function LineChart({ points, height = 180, unit = 'кг', secondary }: { 
 }
 
 /** Горизонтальные полосы с целевой зоной (например, 10–20 подходов в неделю) */
-export function ZoneBars({ rows, zone = [10, 20], max }: { rows: { label: string; value: number; plan?: number }[]; zone?: [number, number]; max?: number }) {
+export function ZoneBars({ rows, zone: zoneAll = [10, 20], max }: { rows: { label: string; value: number; plan?: number; zone?: [number, number] }[]; zone?: [number, number]; max?: number }) {
   const t = useTheme();
-  const m = max ?? Math.max(zone[1] + 4, ...rows.map((r) => Math.max(r.value, r.plan ?? 0)));
+  const m = max ?? Math.max(24, ...rows.map((r) => Math.max(r.value, r.plan ?? 0, (r.zone ?? zoneAll)[1] + 4)));
   return (
     <View style={{ gap: 10 }}>
       {rows.map((r) => {
+        const zone = r.zone ?? zoneAll;
         const inZone = r.value >= zone[0] && r.value <= zone[1];
         const color = r.value === 0 ? t.c.faint : inZone ? t.c.good : r.value > zone[1] ? t.c.warm : t.c.accent;
         return (
