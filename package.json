@@ -52,7 +52,8 @@
     "ios": "npm run gen && expo start --ios",
     "typecheck": "npm run gen && tsc --noEmit",
     "test": "npm run gen && node --experimental-strip-types --test src/core/*.test.ts",
-    "validate-programs": "python3 tools/validate.py ."
+    "validate-programs": "python3 tools/validate.py .",
+    "postinstall": "node scripts/patch-sqlite-web.mjs"
   },
   "private": true
 }

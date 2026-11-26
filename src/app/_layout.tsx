@@ -90,12 +90,20 @@ export default function RootLayout() {
 
 function StartError({ text }: { text: string }) {
   const web = Platform.OS === 'web';
+  const ua = web && typeof navigator !== 'undefined' ? navigator.userAgent : '';
+  // Встроенные браузеры: Telegram и другие на iPhone не поддерживают service worker, без него нет нужной изоляции
+  const noSW = web && typeof navigator !== 'undefined' && !('serviceWorker' in navigator && navigator.serviceWorker);
+  const inApp = web && (noSW || /Telegram|Instagram|FBAN|FBAV|VKClient|Line\//i.test(ua)) && /SharedArrayBuffer/.test(text);
   const isolated = web && typeof globalThis !== 'undefined' ? String((globalThis as { crossOriginIsolated?: boolean }).crossOriginIsolated) : '-';
   return (
     <View style={{ flex: 1, backgroundColor: '#121316', padding: 28, justifyContent: 'center', gap: 14 }}>
-      <Text style={{ color: '#fff', fontSize: 22, fontWeight: '700' }}>Pero не смог запуститься</Text>
+      <Text style={{ color: '#fff', fontSize: 22, fontWeight: '700' }}>{inApp ? 'Открой в Safari или Chrome' : 'Pero не смог запуститься'}</Text>
       <Text style={{ color: '#c9ccd3', fontSize: 15, lineHeight: 21 }}>
-        {web ? 'Попробуй обновить страницу. Если не помогло, пришли этот экран разработчику.' : 'Перезапусти приложение. Если не помогло, пришли этот экран разработчику.'}
+        {inApp
+          ? 'Ссылка открылась внутри другого приложения (Telegram, Instagram и т. п.). Там не работает хранилище, которое нужно Pero. Нажми «…» или «Открыть в браузере», а на iPhone потом «Поделиться» → «На экран Домой».'
+          : web
+            ? 'Попробуй обновить страницу. Если не помогло, пришли этот экран разработчику.'
+            : 'Перезапусти приложение. Если не помогло, пришли этот экран разработчику.'}
       </Text>
       <Text style={{ color: '#8d93a0', fontSize: 12.5 }} selectable>{`${text}\nisolated: ${isolated}\n${web && typeof navigator !== 'undefined' ? navigator.userAgent : ''}`}</Text>
     </View>
