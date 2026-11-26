@@ -14,6 +14,7 @@ import { Btn, Card, Chip, Field, IconBtn, Row, Screen, SectionTitle, Segmented, 
 import { ColumnChart, Heatmap, LineChart, ZoneBars, dayKey } from '../../ui/charts';
 import { Icon } from '../../ui/Icon';
 import { BodyMap, type Sex } from '../../ui/BodyMap';
+import { BodySection } from '../../ui/BodySection';
 import { computeStreak } from '../../core/streak';
 import { weeklyGoal } from '../../features/achievements';
 
@@ -42,7 +43,6 @@ export default function Stats() {
   const weekSets = useLive(() => setsBetween(wFrom, wFrom + 7 * DAY), [wFrom]);
   const recent = useLive(() => setsBetween(thisWeek - 7 * 7 * DAY));
   const body = useLive(() => listBody());
-  const [bw, setBw] = useState('');
   const [exporting, setExporting] = useState(false);
 
   // Сводка
@@ -102,20 +102,6 @@ export default function Stats() {
   }, [recent]);
 
   const feel = sessions.filter((s) => s.mood != null || s.fatigue != null).slice(0, 20).reverse();
-
-  // Вес тела: точки и скользящее среднее за 7 дней
-  const bodyPts = body.filter((b) => b.weight != null).map((b) => ({ x: new Date(b.date).getTime(), y: b.weight! }));
-  const avgPts = bodyPts.map((p) => {
-    const win = bodyPts.filter((q) => q.x <= p.x && q.x > p.x - 7 * DAY);
-    return { x: p.x, y: win.reduce((a, q) => a + q.y, 0) / win.length };
-  });
-  const saveBw = () => {
-    const v = parseNum(bw);
-    if (!v || v < 30 || v > 300) return toast('Введи вес в килограммах', 'info');
-    upsertBody(dayKey(Date.now()), { weight: v });
-    setBw('');
-    toast('Вес записан', 'check');
-  };
 
   const doExport = async () => {
     setExporting(true);
@@ -236,27 +222,7 @@ export default function Stats() {
         </Animated.View>
       )}
 
-      {tab === 'body' && (
-        <Animated.View entering={FadeIn} style={{ gap: 12 }}>
-          <Card style={{ gap: 10 }}>
-            <Txt v="label">Вес сегодня (утром натощак)</Txt>
-            <Row gap={8}>
-              <View style={{ flex: 1 }}>
-                <Field value={bw} onChangeText={setBw} keyboardType="decimal-pad" placeholder={bodyPts.length ? num(bodyPts[bodyPts.length - 1].y) : '81,0'} onSubmitEditing={saveBw} />
-              </View>
-              <Btn title="Записать" onPress={saveBw} />
-            </Row>
-          </Card>
-          <Card style={{ gap: 8 }}>
-            <Row>
-              <Txt v="label" style={{ flex: 1 }}>Вес тела</Txt>
-              {avgPts.length > 0 && <Txt v="medium">{num(avgPts[avgPts.length - 1].y)} кг в среднем за неделю</Txt>}
-            </Row>
-            <LineChart points={avgPts} secondary={bodyPts} />
-            <Txt v="small">Линия: среднее за 7 дней, оно сглаживает скачки из-за воды и соли. Пунктир: каждое взвешивание. Цель на наборе +0,4–0,8 кг в месяц.</Txt>
-          </Card>
-        </Animated.View>
-      )}
+      {tab === 'body' && <BodySection body={body} />}
 
       <Btn kind="secondary" icon="file" title={exporting ? 'Готовлю файл…' : 'Выгрузить всё в Excel'} onPress={doExport} disabled={exporting} />
     </Screen>

@@ -9,7 +9,7 @@ import { num } from '../core/units';
 export type Point = { x: number; y: number; label?: string };
 
 /** Линейный график: ось X — время, ось Y — значение. Последняя точка подписана. */
-export function LineChart({ points, height = 180, unit = 'кг', secondary }: { points: Point[]; height?: number; unit?: string; secondary?: Point[] }) {
+export function LineChart({ points, height = 180, unit = 'кг', secondary, emptyText = 'Нужно хотя бы 2 тренировки для графика', step = 5 }: { points: Point[]; height?: number; unit?: string; secondary?: Point[]; emptyText?: string; step?: number }) {
   const t = useTheme();
   const [w, setW] = useState(0);
   const pad = { l: 34, r: 14, t: 18, b: 22 };
@@ -17,7 +17,7 @@ export function LineChart({ points, height = 180, unit = 'кг', secondary }: { 
   if (points.length < 2) {
     return (
       <View style={{ height, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ fontFamily: t.f.medium, color: t.c.muted, fontSize: 13.5 }}>Нужно хотя бы 2 тренировки для графика</Text>
+        <Text style={{ fontFamily: t.f.medium, color: t.c.muted, fontSize: 13.5 }}>{emptyText}</Text>
       </View>
     );
   }
@@ -28,8 +28,8 @@ export function LineChart({ points, height = 180, unit = 'кг', secondary }: { 
   let y0 = Math.min(...ys);
   let y1 = Math.max(...ys);
   const span = Math.max(1, y1 - y0);
-  y0 = Math.floor((y0 - span * 0.15) / 5) * 5;
-  y1 = Math.ceil((y1 + span * 0.15) / 5) * 5;
+  y0 = Math.floor((y0 - span * 0.15) / step) * step;
+  y1 = Math.ceil((y1 + span * 0.15) / step) * step;
   const W = w;
   const H = height;
   const sx = (x: number) => pad.l + ((x - x0) / Math.max(1, x1 - x0)) * (W - pad.l - pad.r);
