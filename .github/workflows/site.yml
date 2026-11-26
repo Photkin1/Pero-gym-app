@@ -54,6 +54,21 @@ jobs:
             j.expo.extra={...(j.expo.extra||{}),build:Number(process.env.GITHUB_RUN_NUMBER)};
             fs.writeFileSync('app.json',JSON.stringify(j,null,2));"
 
+      # Сначала веб: он собирается за пару минут и выкладывается сразу, со старым APK
+      - name: Build web version
+        run: npx expo export --platform web --output-dir dist
+
+      - name: Assemble site (web only)
+        run: scripts/assemble-site.sh
+
+      - name: Deploy web
+        run: |
+          cd out
+          git init -q -b gh-pages
+          git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Deploy ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages
+
       - name: Generate Android project
         run: npx expo prebuild --platform android --no-install
 
@@ -64,35 +79,15 @@ jobs:
         # Только arm64: все современные телефоны, и APK в 3 раза меньше
         run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
 
-      - name: Build web version
-        run: npx expo export --platform web --output-dir dist
-
-      - name: Assemble site
-        run: |
-          mkdir out
-          cp -r site/. out/
-          cp -r dist out/app
-          # SQLite в браузере требует cross-origin isolation, на Pages её даёт service worker
-          mv out/coi-serviceworker.js out/app/
-          # Safari не умеет COEP credentialless, поэтому всегда require-corp: все ресурсы у нас свои
-          sed -i 's#<head>#<head><script>window.coi={coepCredentialless:function(){return false}}</script><script src="/Pero-gym-app/app/coi-serviceworker.js"></script>#' out/app/index.html
-          # Чтобы на iPhone веб-версию можно было поставить на экран «Домой» как приложение
-          mv out/pwa/* out/app/ && rmdir out/pwa
-          sed -i 's#</head>#<link rel="manifest" href="/Pero-gym-app/app/manifest.webmanifest"><link rel="apple-touch-icon" href="/Pero-gym-app/app/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Pero"><meta name="apple-mobile-web-app-status-bar-style" content="default"></head>#' out/app/index.html
-          cp out/app/index.html out/404.html
-          cp android/app/build/outputs/apk/release/app-release.apk out/pero.apk
-          SIZE=$(du -m out/pero.apk | cut -f1)
-          BUILD="$(date -u +%d.%m.%Y) · ${GITHUB_SHA::7}"
-          sed -i "s/__APK_SIZE__/${SIZE} МБ/; s/__BUILD__/${BUILD}/" out/index.html
-          echo "{\"build\": ${GITHUB_RUN_NUMBER}, \"date\": \"$(date -u +%Y-%m-%d)\"}" > out/version.json
-          touch out/.nojekyll
+      - name: Assemble site (with new APK)
+        run: scripts/assemble-site.sh android/app/build/outputs/apk/release/app-release.apk
 
       - uses: actions/upload-artifact@v4
         with:
           name: pero-apk
           path: out/pero.apk
 
-      - name: Deploy to gh-pages
+      - name: Deploy web and APK
         run: |
           cd out
           git init -q -b gh-pages
