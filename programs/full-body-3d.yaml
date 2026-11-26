@@ -1,0 +1,67 @@
+format: pero-program/1
+name: Фулбади, 3 дня
+author: Pero
+description: >
+  Всё тело три раза в неделю, три разные тренировки (A, B, C).
+  Подходит новичкам и тем, у кого мало времени. ~60 минут.
+level: beginner
+units: kg
+
+schedule:
+  type: weekly
+  days: { mon: fb-a, wed: fb-b, fri: fb-c }
+
+progression:
+  type: double
+
+phases:
+  - { week: 1, rir: 3, note: Учим технику }
+
+deload:
+  every_weeks: 8
+  sets_factor: 0.5
+  rir: 3
+
+warmup:
+  suggest: true
+
+# Упражнение, которого нет в библиотеке, описывается прямо в программе
+custom_exercises:
+  - id: dead-hang
+    name: Вис на турнике
+    muscles: { primary: [forearms] }
+    type: time
+    sides: both
+    tips:
+      - Плечи «включены», не висни на связках
+
+workouts:
+  - id: fb-a
+    name: Фулбади A
+    exercises:
+      - { exercise: squat, variant: back, sets: 3, reps: 6-10, rir: 2, rest: 3m }
+      - { exercise: bench-press, variant: barbell, sets: 3, reps: 6-10, rir: 1-2, rest: 2m30s }
+      - { exercise: lat-pulldown, variant: neutral, sets: 3, reps: 8-12, rir: 1-2, rest: 2m }
+      - { exercise: seated-leg-curl, sets: 2, reps: 10-15, rir: 0-1, rest: 90s }
+      - { exercise: lateral-raise, variant: dumbbell, sets: 2, reps: 12-15, rir: 0-1, rest: 60s }
+      - { exercise: dead-hang, sets: 2, reps: 30-60s, rest: 60s }
+
+  - id: fb-b
+    name: Фулбади B
+    exercises:
+      - { exercise: romanian-deadlift, variant: barbell, sets: 3, reps: 8-10, rir: 2, rest: 2m30s }
+      - { exercise: overhead-press, variant: dumbbell, sets: 3, reps: 8-12, rir: 1-2, rest: 2m }
+      - { exercise: chest-supported-row, variant: machine, sets: 3, reps: 8-12, rir: 1-2, rest: 2m }
+      - { exercise: leg-extension, sets: 2, reps: 10-15, rir: 0-1, rest: 90s }
+      - { exercise: incline-db-curl, group: A, sets: 2, reps: 10-12, rir: 0-1, rest: 60s }
+      - { exercise: triceps-pushdown, variant: rope, group: A, sets: 2, reps: 10-12, rir: 0-1, rest: 60s }
+
+  - id: fb-c
+    name: Фулбади C
+    exercises:
+      - { exercise: leg-press, sets: 3, reps: 10-15, rir: 1-2, rest: 2m30s }
+      - { exercise: incline-press, variant: dumbbell-30, sets: 3, reps: 8-12, rir: 1-2, rest: 2m }
+      - { exercise: pull-up, variant: neutral, sets: 3, reps: 5-10, rir: 1-2, rest: 2m }
+      - { exercise: hip-thrust, variant: machine, sets: 2, reps: 10-12, rir: 1, rest: 90s }
+      - { exercise: standing-calf-raise, sets: 3, reps: 10-15, rir: 0-1, rest: 60s }
+      - { exercise: plank, sets: 2, reps: 45s, rest: 60s }

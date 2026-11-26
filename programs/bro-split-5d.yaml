@@ -1,0 +1,64 @@
+format: pero-program/1
+name: Сплит по группам мышц, 5 дней
+author: Pero
+description: >
+  Классический сплит: каждая группа мышц раз в неделю, но большим объёмом.
+  Исследования показывают, что при равном недельном объёме частота почти не влияет
+  на рост (Schoenfeld 2019), так что это рабочий вариант, если нравится такой формат.
+level: intermediate
+units: kg
+
+schedule:
+  type: weekly
+  days: { mon: chest, tue: back, wed: legs, thu: shoulders, fri: arms }
+
+progression:
+  type: double
+
+warmup:
+  suggest: true
+
+workouts:
+  - id: chest
+    name: Грудь
+    exercises:
+      - { exercise: bench-press, variant: barbell, sets: 4, reps: 6-8, rir: 1-2, rest: 3m }
+      - { exercise: incline-press, variant: dumbbell-30, sets: 3, reps: 8-12, rir: 1, rest: 2m30s }
+      - { exercise: dips, sets: 3, reps: 8-12, rir: 1, rest: 2m }
+      - { exercise: pec-deck, sets: 3, reps: 12-15, rir: 0, rest: 90s }
+
+  - id: back
+    name: Спина
+    exercises:
+      - { exercise: pull-up, variant: overhand, sets: 4, reps: 6-10, rir: 1-2, rest: 2m30s }
+      - { exercise: barbell-row, sets: 3, reps: 8-10, rir: 1-2, rest: 2m30s }
+      - { exercise: cable-row, sets: 3, reps: 10-12, rir: 1, rest: 2m }
+      - { exercise: straight-arm-pulldown, sets: 3, reps: 12-15, rir: 0-1, rest: 90s }
+
+  - id: legs
+    name: Ноги
+    exercises:
+      - { exercise: squat, variant: back, sets: 4, reps: 6-8, rir: 2, rest: 3m }
+      - { exercise: romanian-deadlift, variant: barbell, sets: 3, reps: 8-10, rir: 2, rest: 2m30s }
+      - { exercise: bulgarian-split-squat, variant: dumbbell, sets: 3, reps: 8-10, rir: 1-2, rest: 90s }
+      - { exercise: lying-leg-curl, sets: 3, reps: 10-12, rir: 0-1, rest: 90s }
+      - { exercise: seated-calf-raise, sets: 4, reps: 12-15, rir: 0-1, rest: 60s }
+
+  - id: shoulders
+    name: Плечи
+    exercises:
+      - { exercise: overhead-press, variant: barbell, sets: 4, reps: 6-10, rir: 1-2, rest: 2m30s }
+      - { exercise: lateral-raise, variant: dumbbell, sets: 4, reps: 12-15, rir: 0-1, rest: 60s }
+      - { exercise: reverse-pec-deck, sets: 3, reps: 12-15, rir: 0-1, rest: 60s }
+      - { exercise: shrug, variant: dumbbell, sets: 3, reps: 10-12, rir: 1, rest: 90s }
+      - { exercise: hanging-leg-raise, variant: hanging, sets: 3, reps: 10-15, rir: 1, rest: 60s }
+
+  - id: arms
+    name: Руки
+    exercises:
+      - { exercise: close-grip-bench, sets: 3, reps: 6-10, rir: 1-2, rest: 2m30s }
+      - { exercise: barbell-curl, variant: ez, sets: 3, reps: 8-12, rir: 1, rest: 90s }
+      - { exercise: overhead-triceps-extension, variant: cable, sets: 3, reps: 10-12, rir: 0-1, rest: 90s }
+      - { exercise: incline-db-curl, sets: 3, reps: 10-12, rir: 0-1, rest: 90s }
+      - { exercise: triceps-pushdown, variant: rope, group: A, sets: 2, reps: 12-15, rir: 0, rest: 60s }
+      - { exercise: hammer-curl, variant: dumbbell, group: A, sets: 2, reps: 12-15, rir: 0, rest: 60s }
