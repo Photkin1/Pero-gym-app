@@ -18,4 +18,13 @@ const programs = readdirSync(join(root, 'programs'))
   .map((f) => ({ file: f, source: readFileSync(join(root, 'programs', f), 'utf8') }));
 writeFileSync(join(out, 'programs.json'), JSON.stringify(programs, null, 1));
 
+// Инструкция и библиотека в виде текста: приложение может поделиться ими, чтобы отдать нейросети
+writeFileSync(
+  join(out, 'docs.json'),
+  JSON.stringify({
+    format: readFileSync(join(root, 'docs', 'program-format.md'), 'utf8'),
+    library: readFileSync(join(root, 'library', 'exercises.yaml'), 'utf8'),
+  }),
+);
+
 console.log(`library: ${library.exercises.length} упражнений, programs: ${programs.length}`);

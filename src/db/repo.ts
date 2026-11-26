@@ -110,9 +110,9 @@ export function setPref(exerciseId: string, patch: Partial<ExercisePref>) {
 
 // ───────── Тренировки ─────────
 
-export type Session = { id: number; programId: number | null; workoutId: string | null; workoutName: string; plan: Workout; startedAt: number; finishedAt: number | null; note: string | null };
-type SessionRow = { id: number; program_id: number | null; workout_id: string | null; workout_name: string; plan_json: string; started_at: number; finished_at: number | null; note: string | null };
-const toSession = (r: SessionRow): Session => ({ id: r.id, programId: r.program_id, workoutId: r.workout_id, workoutName: r.workout_name, plan: JSON.parse(r.plan_json), startedAt: r.started_at, finishedAt: r.finished_at, note: r.note });
+export type Session = { id: number; programId: number | null; workoutId: string | null; workoutName: string; plan: Workout; startedAt: number; finishedAt: number | null; note: string | null; mood: number | null; fatigue: number | null };
+type SessionRow = { id: number; program_id: number | null; workout_id: string | null; workout_name: string; plan_json: string; started_at: number; finished_at: number | null; note: string | null; mood: number | null; fatigue: number | null };
+const toSession = (r: SessionRow): Session => ({ id: r.id, programId: r.program_id, workoutId: r.workout_id, workoutName: r.workout_name, plan: JSON.parse(r.plan_json), startedAt: r.started_at, finishedAt: r.finished_at, note: r.note, mood: r.mood, fatigue: r.fatigue });
 
 export function startSession(programId: number | null, plan: Workout): number {
   const now = Date.now();
@@ -133,8 +133,11 @@ export function updateSessionPlan(id: number, plan: Workout) {
   db.runSync('UPDATE session SET plan_json = ? WHERE id = ?', JSON.stringify(plan), id);
   notify();
 }
-export function finishSession(id: number, note?: string) {
-  db.runSync('UPDATE session SET finished_at = ?, note = COALESCE(?, note) WHERE id = ?', Date.now(), note ?? null, id);
+export function finishSession(id: number, f: { note?: string; mood?: number | null; fatigue?: number | null } = {}) {
+  db.runSync(
+    'UPDATE session SET finished_at = COALESCE(finished_at, ?), note = COALESCE(?, note), mood = COALESCE(?, mood), fatigue = COALESCE(?, fatigue) WHERE id = ?',
+    Date.now(), f.note ?? null, f.mood ?? null, f.fatigue ?? null, id,
+  );
   notify();
 }
 export function deleteSession(id: number) {

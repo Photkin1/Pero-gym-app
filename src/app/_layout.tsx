@@ -12,6 +12,7 @@ import { seedIfEmpty } from '../db/repo';
 import { ThemeProvider, useTheme } from '../theme';
 import { FONTS } from '../theme/themes';
 import { ToastHost } from '../ui/kit';
+import { AchievementHost } from '../ui/AchievementHost';
 
 // База готовится до первого кадра: все запросы синхронные и быстрые
 migrate();
@@ -32,6 +33,7 @@ function Shell() {
         <Stack.Screen name="library" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
       </Stack>
       <ToastHost />
+      <AchievementHost />
     </View>
   );
 }

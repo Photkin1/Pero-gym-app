@@ -35,11 +35,11 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: t.c.bg } }}
-      tabBar={({ state, navigation }) => (
+      tabBar={({ state, navigateToTab }) => (
         <View style={{ flexDirection: 'row', backgroundColor: t.c.nav, borderTopWidth: 1, borderTopColor: t.c.line, paddingBottom: insets.bottom + 6 }}>
           {state.routes.map((r, i) => {
             const tab = TABS.find((x) => x.name === r.name)!;
-            return <TabButton key={r.key} on={state.index === i} title={tab.title} icon={tab.icon} onPress={() => navigation.navigate(r.name)} />;
+            return <TabButton key={r.key} on={state.index === i} title={tab.title} icon={tab.icon} onPress={() => navigateToTab(r.key)} />;
           })}
         </View>
       )}

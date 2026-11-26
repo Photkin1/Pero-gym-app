@@ -72,6 +72,11 @@ const MIGRATIONS: string[] = [
     value TEXT NOT NULL
   );
   `,
+  // 2: оценка тренировки после завершения
+  `
+  ALTER TABLE session ADD COLUMN mood INTEGER;     -- самочувствие 1–5
+  ALTER TABLE session ADD COLUMN fatigue INTEGER;  -- усталость 1–5
+  `,
 ];
 
 export function migrate() {
