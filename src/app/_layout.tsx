@@ -8,7 +8,7 @@ import { useFonts } from 'expo-font';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { migrate, prepareDb } from '../db/db';
-import { seedIfEmpty } from '../db/repo';
+import { patchBundledPrograms, seedIfEmpty } from '../db/repo';
 import { ThemeProvider, useTheme } from '../theme';
 import { FONTS } from '../theme/themes';
 import { ToastHost } from '../ui/kit';
@@ -22,6 +22,7 @@ let dbReady = false;
 const dbPromise = prepareDb().then(() => {
   migrate();
   seedIfEmpty();
+  patchBundledPrograms();
   dbReady = true;
 });
 SplashScreen.preventAutoHideAsync().catch(() => {});

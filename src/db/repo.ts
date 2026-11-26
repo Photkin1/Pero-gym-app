@@ -91,6 +91,34 @@ export function seedIfEmpty() {
   }
 }
 
+/** Разовые правки встроенной программы Петра у тех, кто её уже установил. Свои изменения в программе не затираются. */
+export function patchBundledPrograms() {
+  const KEY = 'patch.ul4d.delts-calves';
+  if (getSetting(KEY, false)) return;
+  const rows = db.getAllSync<{ id: number; json: string }>('SELECT id, json FROM program');
+  for (const r of rows) {
+    const p = JSON.parse(r.json) as Program;
+    if (p.name !== 'Верх/низ, 4 дня') continue;
+    let changed = false;
+    const w = (id: string) => p.workouts.find((x) => x.id === id);
+    const ua = w('upper-a');
+    if (ua) {
+      const i = ua.exercises.findIndex((e) => e.exercise === 'lateral-raise');
+      if (i >= 0 && ua.exercises[i].sets < 4) { ua.exercises[i].sets = 4; changed = true; }
+      if (!ua.exercises.some((e) => e.exercise === 'reverse-pec-deck')) {
+        ua.exercises.splice(i >= 0 ? i + 1 : ua.exercises.length, 0, { exercise: 'reverse-pec-deck', sets: 2, reps: '12-15', rir: '0-1', rest: '60s', start_weight: 40 });
+        changed = true;
+      }
+    }
+    for (const [wid, ex] of [['lower-a', 'standing-calf-raise'], ['lower-b', 'seated-calf-raise']] as const) {
+      const e = w(wid)?.exercises.find((x) => x.exercise === ex);
+      if (e && e.sets < 4) { e.sets = 4; changed = true; }
+    }
+    if (changed) db.runSync('UPDATE program SET json = ?, updated_at = ? WHERE id = ?', JSON.stringify(p), Date.now(), r.id);
+  }
+  setSetting(KEY, true);
+}
+
 // ───────── Предпочтения по упражнению ─────────
 
 export type ExercisePref = { variantId: string | null; sides: 'both' | 'each' | null; increment: number | null };

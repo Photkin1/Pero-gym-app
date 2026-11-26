@@ -1,4 +1,4 @@
-// Раздел «Тело» во вкладке «Прогресс»: вес (среднее за неделю + график по 3 дня) и замеры плитками.
+// Раздел «Тело» во вкладке «Прогресс»: вес (среднее за неделю + скользящее среднее за 7 дней) и замеры плитками.
 import { useMemo, useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -21,6 +21,14 @@ const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
 
 type Period = '1m' | '3m' | 'all';
 const PERIOD_DAYS: Record<Period, number> = { '1m': 31, '3m': 92, all: 1e5 };
+
+/** Для каждого взвешивания — среднее за 7 дней до него включительно */
+export function rollingAvg(pts: Point[], days = 7): Point[] {
+  return pts.map((p) => {
+    const win = pts.filter((q) => q.x <= p.x && q.x > p.x - days * DAY);
+    return { x: p.x, y: mean(win.map((q) => q.y)) };
+  });
+}
 
 /** Каждая точка — среднее взвешиваний за 3 дня (окна считаются от сегодняшнего дня назад) */
 export function bucketAvg(pts: Point[], days = 3): Point[] {
@@ -71,7 +79,7 @@ export function BodySection({ body }: { body: BodyMetric[] }) {
 
   const chartPts = useMemo(() => {
     const from = Date.now() - PERIOD_DAYS[period] * DAY;
-    return bucketAvg(weights.filter((p) => p.x >= from));
+    return { avg: rollingAvg(weights).filter((p) => p.x >= from), raw: weights.filter((p) => p.x >= from) };
   }, [weights, period]);
 
   const series = (m: Measure) => body.filter((b) => b[m] != null).map((b) => ({ x: ts(b.date), y: b[m]! }));
@@ -99,8 +107,8 @@ export function BodySection({ body }: { body: BodyMetric[] }) {
             <Chip key={p} small label={p === '1m' ? '1 мес' : p === '3m' ? '3 мес' : 'Всё'} on={period === p} onPress={() => setPeriod(p)} />
           ))}
         </Row>
-        <LineChart points={chartPts} height={170} step={1} emptyText="Взвесься пару раз, и здесь появится график" />
-        <Txt v="small">Каждая точка — среднее за 3 дня, так скачки из-за воды и соли не мешают видеть тренд.</Txt>
+        <LineChart points={chartPts.avg} secondary={chartPts.raw} height={170} step={1} emptyText="Взвесься пару раз, и здесь появится график" />
+        <Txt v="small">Линия — среднее за последние 7 дней, пунктир — сами взвешивания. Так скачки из-за воды и соли не мешают видеть тренд.</Txt>
       </Card>
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
@@ -121,7 +129,8 @@ export function BodySection({ body }: { body: BodyMetric[] }) {
   );
 }
 
-const HOWTO: Record<Measure, string> = {
+const HOWTO: Record<'weight' | Measure, string> = {
+  weight: 'Взвешивайся утром, после туалета и до еды, в одной и той же одежде или без неё.',
   waist: 'Талию меряй по пупку, на спокойном выдохе, не втягивая живот.',
   chest: 'Грудь — по самой широкой части, под мышками, руки опущены.',
   arm: 'Бицепс — в самой толстой точке, рука согнута и напряжена.',
@@ -228,6 +237,7 @@ function MeasureSheet({ open, onClose, body }: { open: boolean; onClose: () => v
             onChange={(v) => setDraft({ ...draft, [f.k]: v })}
             step={f.step}
             bold={f.k === 'weight'}
+            hint={HOWTO[f.k]}
           />
         ))}
       <Btn title="Сохранить" onPress={save} full />
@@ -235,8 +245,9 @@ function MeasureSheet({ open, onClose, body }: { open: boolean; onClose: () => v
   );
 }
 
-function Stepper({ label, unit, value, onChange, step, bold }: { label: string; unit: string; value: string; onChange: (v: string) => void; step: number; bold?: boolean }) {
+function Stepper({ label, unit, value, onChange, step, bold, hint }: { label: string; unit: string; value: string; onChange: (v: string) => void; step: number; bold?: boolean; hint: string }) {
   const t = useTheme();
+  const [info, setInfo] = useState(false);
   const bump = (dir: number) => {
     const v = parseNum(value);
     if (v == null) return;
@@ -248,11 +259,19 @@ function Stepper({ label, unit, value, onChange, step, bold }: { label: string; 
     </Press>
   );
   return (
+    <View style={{ gap: 6 }}>
     <Row gap={8}>
-      <Text style={{ flex: 1, fontFamily: bold ? t.f.bold : t.f.medium, fontSize: 15, color: t.c.ink }}>
-        {label}
-        <Text style={{ color: t.c.muted, fontFamily: t.f.body }}>, {unit}</Text>
-      </Text>
+      <Press onPress={() => setInfo(!info)} hitSlop={6} style={{ flex: 1 }}>
+        <Row gap={6}>
+          <Text style={{ fontFamily: bold ? t.f.bold : t.f.medium, fontSize: 15, color: t.c.ink }}>
+            {label}
+            <Text style={{ color: t.c.muted, fontFamily: t.f.body }}>, {unit}</Text>
+          </Text>
+          <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: info ? t.c.accent : t.c.faint, backgroundColor: info ? t.c.accent : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontFamily: t.f.bold, fontSize: 11, lineHeight: 13, color: info ? t.c.onAccent : t.c.muted }}>i</Text>
+          </View>
+        </Row>
+      </Press>
       {btn(-1)}
       <TextInput
         value={value}
@@ -265,5 +284,11 @@ function Stepper({ label, unit, value, onChange, step, bold }: { label: string; 
       />
       {btn(1)}
     </Row>
+    {info && (
+      <Animated.View entering={FadeIn.duration(180)} style={{ backgroundColor: t.c.chip, borderRadius: t.r.md, padding: 10 }}>
+        <Txt v="small" color={t.c.ink}>{hint}</Txt>
+      </Animated.View>
+    )}
+    </View>
   );
 }

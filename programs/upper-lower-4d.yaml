@@ -36,7 +36,8 @@ workouts:
       - { exercise: pull-up, variant: overhand, sets: 3, reps: 6-10, rir: 1-2, rest: 2m30s, note: "Вес добавляй, когда во всех подходах 10+" }
       - { exercise: incline-press, variant: dumbbell-30, sets: 3, reps: 8-12, rir: 1-2, rest: 2m30s }
       - { exercise: chest-supported-row, variant: machine, sets: 3, reps: 8-12, rir: 1-2, rest: 2m, start_weight: 60 }
-      - { exercise: lateral-raise, variant: dumbbell, sets: 3, reps: 10-15, rir: 0-1, rest: 90s, start_weight: 10 }
+      - { exercise: lateral-raise, variant: dumbbell, sets: 4, reps: 10-15, rir: 0-1, rest: 90s, start_weight: 10 }
+      - { exercise: reverse-pec-deck, sets: 2, reps: 12-15, rir: 0-1, rest: 60s, start_weight: 40 }
       - { exercise: incline-db-curl, sets: 3, reps: 8-12, rir: 0-1, rest: 90s, start_weight: 12 }
       - { exercise: overhead-triceps-extension, variant: cable, sets: 3, reps: 8-12, rir: 0-1, rest: 90s, start_weight: 36 }
 
@@ -47,7 +48,7 @@ workouts:
       - { exercise: romanian-deadlift, variant: dumbbell, sets: 3, reps: 8-10, rir: 2-3, rest: 2m30s, start_weight: 16, note: Вес одной гантели }
       - { exercise: seated-leg-curl, sets: 3, reps: 8-12, rir: 0-1, rest: 2m, start_weight: 90 }
       - { exercise: leg-extension, sets: 3, reps: 10-15, rir: 0-1, rest: 90s, sides: each, start_weight: 60, note: По одной ноге }
-      - { exercise: standing-calf-raise, sets: 3, reps: 10-15, rir: 0-1, rest: 90s, note: Пауза внизу 1–2 с }
+      - { exercise: standing-calf-raise, sets: 4, reps: 10-15, rir: 0-1, rest: 90s, note: Пауза внизу 1–2 с }
       - { exercise: cable-crunch, sets: 3, reps: 10-15, rir: 0-1, rest: 90s }
 
   - id: upper-b
@@ -72,5 +73,5 @@ workouts:
       - { exercise: seated-leg-curl, sides: each, sets: 3, reps: 10-12, rir: 0-1, rest: 90s }
       - { exercise: hip-abduction, sets: 2, reps: 12-15, rir: 0-1, rest: 60s }
       - { exercise: hip-adduction, sets: 2, reps: 12-15, rir: 0-1, rest: 60s }
-      - { exercise: seated-calf-raise, sets: 3, reps: 12-15, rir: 0-1, rest: 60s }
+      - { exercise: seated-calf-raise, sets: 4, reps: 12-15, rir: 0-1, rest: 60s }
       - { exercise: hanging-leg-raise, variant: captains-chair, sets: 3, reps: 8-15, rir: 0-1, rest: 90s }

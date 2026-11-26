@@ -105,7 +105,7 @@ test('расписание', () => {
   assert.deepEqual(nextWorkout(r.program, null, false, mon), { workoutId: 'upper-a', when: 'today' });
   assert.deepEqual(nextWorkout(r.program, 'upper-a', true, mon), { workoutId: 'lower-a', when: 'tue' });
   const vol = plannedWeeklySets(r.program, exerciseIndex(library, r.program));
-  assert.equal(vol.get('calves'), 6);
+  assert.equal(vol.get('calves'), 8);
 });
 
 import { computeStreak, weekStart } from './streak.ts';
