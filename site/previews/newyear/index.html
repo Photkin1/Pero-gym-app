@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>pero studio — новогодняя заставка</title>
+<style>
+@font-face{font-family:DS;src:url(DancingScript.ttf);font-weight:400 700}
+@font-face{font-family:MR;src:url(Manrope.ttf);font-weight:200 800}
+@font-face{font-family:CGI;src:url(CormorantItalic.ttf)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(120% 90% at 50% 10%,#1d2a44 0%,#11161f 60%,#0c0f15 100%);color:#f3f4f6;font-family:MR,system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;overflow:hidden}
+.stage{width:min(520px,100vw);height:min(86vh,620px);margin-top:2vh}
+svg{width:100%;height:100%;overflow:visible}
+.word{font-family:DS;font-weight:700;font-size:64px;fill:#f3f4f6}
+.studio{font-family:CGI;font-size:22px;fill:#a9b0be;letter-spacing:1px}
+.greet{font-family:MR;font-weight:600;font-size:12px;letter-spacing:5px;fill:#ffcf6b}
+.snow{fill:#fff}
+button{font:600 14px MR,sans-serif;border:0;background:#ff6b4a;color:#fff;padding:10px 18px;border-radius:99px;cursor:pointer;margin:8px}
+</style></head>
+<body>
+<div class="stage">
+<svg id="s" viewBox="0 0 480 560">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe39a"/><stop offset=".5" stop-color="#ffbf3f"/><stop offset="1" stop-color="#c98612"/></linearGradient>
+    <radialGradient id="glow"><stop offset="0" stop-color="#ffd76b" stop-opacity=".55"/><stop offset="1" stop-color="#ffd76b" stop-opacity="0"/></radialGradient>
+    <linearGradient id="rod" x1="0" x2="1"><stop offset="0" stop-color="#7d8594"/><stop offset=".45" stop-color="#e3e7ee"/><stop offset="1" stop-color="#6b7280"/></linearGradient>
+  </defs>
+  <g id="snowBack"></g>
+  <ellipse cx="240" cy="402" rx="140" ry="10" fill="#fff" opacity=".08"/>
+  <g id="rodEl"><rect id="rodBody" x="235" y="90" width="10" height="312" rx="2" fill="#aeb4bf"/><rect id="rodHi" x="237.5" y="90" width="2" height="312" fill="#eef1f5"/><rect id="rodSh" x="242" y="90" width="3" height="312" fill="#7d8492"/></g>
+  <g id="plates"></g>
+  <g id="lights"></g>
+  <g id="kb">
+    <circle cx="0" cy="0" r="60" fill="url(#glow)"/>
+    <path d="M-15 -22 C-15 -44 15 -44 15 -22" stroke="url(#gold)" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <circle cx="0" cy="0" r="24" fill="url(#gold)"/>
+    <ellipse cx="-8" cy="-8" rx="7" ry="5" fill="#fff" opacity=".45"/>
+    <rect x="-16" y="20" width="32" height="6" rx="3" fill="#c98612"/>
+    <path id="spark" d="M30 -40 l3 9 9 3 -9 3 -3 9 -3 -9 -9 -3 9 -3z" fill="#fff"/>
+  </g>
+  <g id="title" opacity="0">
+    <text class="word" x="240" y="470" text-anchor="middle">pero</text>
+    <text class="studio" x="240" y="500" text-anchor="middle">studio</text>
+    
+  </g>
+  <g id="snowFront"></g>
+</svg>
+</div>
+<button id="replay">▶ Повторить</button>
+<script>
+const NS='http://www.w3.org/2000/svg', $=id=>document.getElementById(id);
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e};
+// блины снизу вверх: ширина, цвет (как бамперные: красный 25, синий 20, жёлтый 15, зелёный 10, белый 5...)
+const P=[[230,'#e5484d'],[184,'#3b82f6'],[140,'#f5c03b'],[98,'#22a06b'],[60,'#e5484d']];
+const TH=20, GAP=22, BASE=392;
+const plates=[];
+P.forEach(([w,c],i)=>{
+  const y=BASE-(i+1)*TH-i*GAP;
+  const g=el('g',{},$('plates'));
+  el('rect',{x:240-w/2,y,width:w,height:TH,rx:7,fill:c},g);
+  el('rect',{x:240-w/2+6,y:y+3,width:w-12,height:5,rx:2.5,fill:'#fff',opacity:.28},g);
+  el('rect',{x:240-w/2,y:y+TH-6,width:w,height:6,rx:3,fill:'#000',opacity:.18},g);
+  el('rect',{x:228,y:y-3,width:24,height:3,rx:1.5,fill:'#d6dae1'},g);
+  plates.push({g,y,w});
+});
+const topY=plates[plates.length-1].y;
+['rodBody','rodHi','rodSh'].forEach(id=>{$(id).setAttribute('y',topY-16);$(id).setAttribute('height',BASE-topY+26)});
+// гирлянда: огоньки по краям блинов
+const LC=['#ffd76b','#ff7a90','#7cc8ff','#9dffb0'];const lights=[];
+plates.forEach(({y,w},i)=>{const n=Math.max(2,Math.round(w/40));for(let j=0;j<n;j++){const x=240-w/2+10+j*(w-20)/(n-1);
+  lights.push(el('circle',{cx:x,cy:y+TH+2,r:3.2,fill:LC[(i+j)%4],opacity:0},$('lights')))}});
+// снег
+function snow(layer,n,rMin,rMax,op){for(let i=0;i<n;i++){const r=rMin+Math.random()*(rMax-rMin),x=Math.random()*520-20;
+  const c=el('circle',{class:'snow',cx:0,cy:0,r,opacity:op*(.5+Math.random()*.5)},layer);const d=6000+Math.random()*7000,drift=20+Math.random()*30;
+  c.animate([{transform:`translate(${x}px,-20px)`},{transform:`translate(${x+drift}px,180px)`},{transform:`translate(${x-drift/2}px,380px)`},{transform:`translate(${x+drift/3}px,580px)`}],
+    {duration:d*(1+ (rMax-r)/rMax),iterations:Infinity,delay:-Math.random()*d,easing:'linear'})}}
+snow($('snowBack'),45,1,2.2,.5);snow($('snowFront'),18,2.2,3.6,.9);
+let anims=[];
+function play(){
+  anims.forEach(a=>a.cancel());anims=[];
+  anims.push($('rodEl').animate([{transform:'scaleY(0)'},{transform:'scaleY(1)'}],{duration:500,easing:'cubic-bezier(.2,.8,.2,1)',fill:'both'}));
+  $('rodEl').style.transformOrigin='240px 402px';
+  plates.forEach(({g},i)=>{const d=420+i*300;
+    anims.push(g.animate([{transform:'translateY(-520px)',opacity:1},{transform:'translateY(0)',offset:.72},{transform:'translateY(-10px)',offset:.84},{transform:'translateY(0)'}],
+      {duration:620,delay:d,easing:'cubic-bezier(.55,0,.6,1)',fill:'both'}))});
+  const tEnd=420+plates.length*300+300;
+  const kbY=topY-26;
+  anims.push($('kb').animate([{transform:`translate(240px,${kbY-520}px) rotate(-20deg)`},{transform:`translate(240px,${kbY}px) rotate(4deg)`,offset:.75},{transform:`translate(240px,${kbY-14}px) rotate(-2deg)`,offset:.88},{transform:`translate(240px,${kbY}px) rotate(0)`}],
+    {duration:800,delay:tEnd,easing:'cubic-bezier(.55,0,.6,1)',fill:'both'}));
+  anims.push($('spark').animate([{opacity:0,transform:'scale(.2)'},{opacity:1,transform:'scale(1.3)',offset:.3},{opacity:.9,transform:'scale(1)'}],{duration:700,delay:tEnd+800,fill:'both'}));
+  $('spark').style.transformBox='fill-box';$('spark').style.transformOrigin='center';
+  anims.push($('spark').animate([{opacity:.9},{opacity:.3},{opacity:.9}],{duration:1600,delay:tEnd+1500,iterations:Infinity}));
+  lights.forEach((l,i)=>{anims.push(l.animate([{opacity:0},{opacity:1}],{duration:200,delay:tEnd+900+i*40,fill:'both'}));
+    anims.push(l.animate([{opacity:1},{opacity:.25},{opacity:1}],{duration:1400,delay:tEnd+2000+(i%3)*460,iterations:Infinity}))});
+  anims.push($('title').animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:900,delay:tEnd+1000,easing:'cubic-bezier(.2,.7,.2,1)',fill:'both'}));
+}
+$('replay').onclick=play;
+document.fonts.ready.then(()=>{play();if(location.hash==='#end')anims.forEach(a=>{if(a.effect.getTiming().iterations!==Infinity)a.finish()})});
+</script>
+</body></html>

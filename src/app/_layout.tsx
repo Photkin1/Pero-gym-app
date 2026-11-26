@@ -7,7 +7,7 @@ import * as SystemUI from 'expo-system-ui';
 import { useFonts } from 'expo-font';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { migrate } from '../db/db';
+import { migrate, prepareDb } from '../db/db';
 import { seedIfEmpty } from '../db/repo';
 import { ThemeProvider, useTheme } from '../theme';
 import { FONTS } from '../theme/themes';
@@ -16,9 +16,14 @@ import { AchievementHost } from '../ui/AchievementHost';
 import { Intro, isNewYearSeason } from '../ui/Intro';
 import { Snow } from '../ui/Snow';
 
-// База готовится до первого кадра: все запросы синхронные и быстрые
-migrate();
-seedIfEmpty();
+// База готовится до первого кадра: все запросы синхронные и быстрые.
+// В веб-версии сначала ждём, пока загрузится SQLite-воркер.
+let dbReady = false;
+const dbPromise = prepareDb().then(() => {
+  migrate();
+  seedIfEmpty();
+  dbReady = true;
+});
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function Shell() {
@@ -43,12 +48,16 @@ function Shell() {
 
 export default function RootLayout() {
   const [loaded] = useFonts(FONTS);
+  const [ready, setReady] = useState(dbReady);
+  useEffect(() => {
+    if (!ready) dbPromise.then(() => setReady(true));
+  }, [ready]);
   const [intro, setIntro] = useState(true);
   const endIntro = useCallback(() => setIntro(false), []);
   useEffect(() => {
-    if (loaded) SplashScreen.hideAsync().catch(() => {});
-  }, [loaded]);
-  if (!loaded) return null;
+    if (loaded && ready) SplashScreen.hideAsync().catch(() => {});
+  }, [loaded, ready]);
+  if (!loaded || !ready) return null;
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

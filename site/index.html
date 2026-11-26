@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#121316">
+<title>pero studio — дневник тренировок</title>
+<link rel="icon" href="icon.png">
+<style>
+@font-face{font-family:DS;src:url(fonts/DancingScript.ttf);font-weight:400 700}
+@font-face{font-family:CGI;src:url(fonts/CormorantItalic.ttf)}
+@font-face{font-family:MR;src:url(fonts/Manrope.ttf);font-weight:200 800}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#121316;color:#f1f2f4;font-family:MR,system-ui,sans-serif;display:flex;justify-content:center}
+main{width:100%;max-width:440px;padding:56px 22px 40px;display:flex;flex-direction:column;align-items:center}
+.logo{position:relative;font-family:DS;font-weight:700;font-size:96px;line-height:1;margin-top:40px}
+.logo svg{position:absolute;width:30px;right:-14px;top:-56px;transform:rotate(34deg)}
+.studio{font-family:CGI;font-size:28px;color:#a9b0be;margin-top:2px}
+.tag{color:#8d93a0;text-align:center;margin:22px 0 34px;line-height:1.5}
+.btn{display:flex;align-items:center;gap:14px;width:100%;padding:16px 18px;border-radius:18px;text-decoration:none;color:inherit;margin-bottom:12px;transition:transform .15s}
+.btn:active{transform:scale(.98)}
+.btn b{display:block;font-size:17px}.btn small{color:inherit;opacity:.7;font-size:13px}
+.primary{background:#ff6b4a;color:#fff}
+.ghost{background:#1c1e23}
+.ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.14);flex:none}
+details{width:100%;background:#1c1e23;border-radius:18px;padding:14px 18px;margin-top:8px;color:#c3c8d2}
+summary{cursor:pointer;font-weight:600;color:#f1f2f4}
+ol{padding-left:20px;line-height:1.6;margin:10px 0 2px}
+.links{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;margin-top:30px}
+.links a{color:#8d93a0;font-size:14px}
+.build{color:#5b6170;font-size:12px;margin-top:18px}
+</style>
+</head>
+<body>
+<main>
+  <div class="logo">pero
+    <svg viewBox="-30 -100 60 200"><defs><linearGradient id="v" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff5a3a"/><stop offset=".6" stop-color="#ff7a55"/><stop offset="1" stop-color="#ffa184"/></linearGradient></defs>
+      <path d="M0 64 C-7 34 -26 6 -23 -30 C-21 -58 -9 -80 0 -92 C11 -79 24 -56 24 -26 C24 2 12 36 0 64Z" fill="url(#v)"/>
+      <path d="M0 92 C1 40 1 -30 0 -88" stroke="#fff" stroke-opacity=".85" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+  </div>
+  <div class="studio">studio</div>
+  <p class="tag">Дневник тренировок: программа, веса, отдых, прогресс.<br>Всё хранится на телефоне.</p>
+
+  <a class="btn primary" href="pero.apk" download>
+    <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></span>
+    <span><b>Скачать для Android</b><small>APK · __APK_SIZE__</small></span>
+  </a>
+  <a class="btn ghost" href="app/">
+    <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f1f2f4" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg></span>
+    <span><b>Открыть в браузере</b><small>Для iPhone и компьютера, без установки</small></span>
+  </a>
+
+  <details>
+    <summary>Как установить APK</summary>
+    <ol>
+      <li>Нажми «Скачать для Android».</li>
+      <li>Открой скачанный файл pero.apk.</li>
+      <li>Если телефон спросит, разреши установку из этого источника (браузера).</li>
+      <li>Нажми «Установить». Обновление ставится так же, поверх, данные сохранятся.</li>
+    </ol>
+  </details>
+  <details>
+    <summary>Про веб-версию</summary>
+    <ol>
+      <li>Данные хранятся в этом браузере, на телефоне их не видно, и наоборот.</li>
+      <li>На iPhone: Safari → «Поделиться» → «На экран Домой», будет как приложение.</li>
+      <li>Нет виджета серии и уведомлений таймера, они есть только в Android-версии.</li>
+    </ol>
+  </details>
+
+  <div class="links">
+    <a href="previews/intro/">Заставка</a>
+    <a href="previews/newyear/">Новогодняя заставка</a>
+    <a href="previews/design.html">Варианты дизайна</a>
+    <a href="https://github.com/Photkin1/Pero-gym-app">Код</a>
+  </div>
+  <div class="build">Сборка __BUILD__</div>
+</main>
+</body>
+</html>

@@ -27,7 +27,10 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "output": "single",
+      "name": "Pero",
+      "themeColor": "#121316"
     },
     "plugins": [
       "expo-router",
@@ -70,7 +73,8 @@
       ]
     ],
     "experiments": {
-      "typedRoutes": false
+      "typedRoutes": false,
+      "baseUrl": "/Pero-gym-app/app"
     }
   }
 }

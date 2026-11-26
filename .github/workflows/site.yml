@@ -1,0 +1,87 @@
+# Собирает APK для Android и веб-версию, выкладывает всё на GitHub Pages:
+#   https://photkin1.github.io/Pero-gym-app/        — страница со ссылкой на APK
+#   https://photkin1.github.io/Pero-gym-app/app/    — веб-версия
+#   https://photkin1.github.io/Pero-gym-app/pero.apk
+name: Build APK and site
+
+on:
+  push:
+    branches: [pero-v1, main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate bundled data (library, programs, docs)
+        run: node scripts/gen-data.mjs
+
+      - name: Typecheck and tests
+        run: |
+          npx tsc --noEmit
+          node --experimental-strip-types --test src/core/core.test.ts
+
+      - name: Generate Android project
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Build APK
+        working-directory: android
+        env:
+          GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx4g
+        # Только arm64: все современные телефоны, и APK в 3 раза меньше
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
+
+      - name: Build web version
+        run: npx expo export --platform web --output-dir dist
+
+      - name: Assemble site
+        run: |
+          mkdir out
+          cp -r site/. out/
+          cp -r dist out/app
+          # SQLite в браузере требует cross-origin isolation, на Pages её даёт service worker
+          mv out/coi-serviceworker.js out/app/
+          sed -i 's#<head>#<head><script src="/Pero-gym-app/app/coi-serviceworker.js"></script>#' out/app/index.html
+          cp out/app/index.html out/404.html
+          cp android/app/build/outputs/apk/release/app-release.apk out/pero.apk
+          SIZE=$(du -m out/pero.apk | cut -f1)
+          BUILD="$(date -u +%d.%m.%Y) · ${GITHUB_SHA::7}"
+          sed -i "s/__APK_SIZE__/${SIZE} МБ/; s/__BUILD__/${BUILD}/" out/index.html
+          touch out/.nojekyll
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pero-apk
+          path: out/pero.apk
+
+      - name: Deploy to gh-pages
+        run: |
+          cd out
+          git init -q -b gh-pages
+          git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Deploy ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages

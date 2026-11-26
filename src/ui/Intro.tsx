@@ -62,9 +62,9 @@ const WORD_W = 1.489 * S;
 const LINE_H = 1.2 * S; // ascent + descent шрифта, базовая линия на 0.92·S
 const LAND_X = 1.407 * S; // куда садится перо: над «o», ближе к правому краю
 const LAND_Y = 0.216 * S;
-const FS = 0.413 * S / 100; // масштаб пера
-const FW = 60 * FS * 100;
-const FH = 200 * FS * 100;
+const FS = (0.413 * S) / 100; // масштаб пера
+const FW = 60 * FS;
+const FH = 200 * FS;
 
 const WRITE_MS = 1700;
 const FALL_MS = 2700;

@@ -1,8 +1,28 @@
 // Локальная база SQLite. Все данные живут только на телефоне.
 // Миграции пронумерованы: новая версия схемы = новый элемент в MIGRATIONS, старые не меняем.
 import * as SQLite from 'expo-sqlite';
+import { Platform } from 'react-native';
 
-export const db = SQLite.openDatabaseSync('pero.db');
+const NAME = 'pero.db';
+let handle: SQLite.SQLiteDatabase | null = null;
+function open() {
+  if (!handle) handle = SQLite.openDatabaseSync(NAME);
+  return handle;
+}
+
+// База открывается при первом обращении. В браузере SQLite живёт в воркере,
+// поэтому там сначала нужно дождаться prepareDb(), а дальше синхронный API работает как на телефоне.
+export const db = new Proxy({} as SQLite.SQLiteDatabase, {
+  get(_, key) {
+    const d = open();
+    const v = Reflect.get(d, key, d);
+    return typeof v === 'function' ? v.bind(d) : v;
+  },
+});
+
+export async function prepareDb() {
+  if (Platform.OS === 'web') await SQLite.openDatabaseAsync(NAME);
+}
 
 const MIGRATIONS: string[] = [
   `
