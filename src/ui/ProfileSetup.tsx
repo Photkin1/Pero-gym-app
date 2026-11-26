@@ -1,7 +1,7 @@
 // Знакомство: пол и рост, затем стартовые вес и замеры. Оба шага можно пропустить.
 // Показывается один раз после заставки; из настроек открывается снова.
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInRight, FadeOutLeft } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
@@ -44,6 +44,7 @@ export function ProfileSetup({ onDone }: { onDone: () => void }) {
     onDone();
   };
   const saveFirst = () => {
+    Keyboard.dismiss();
     if (sex) setSetting('profile.sex', sex);
     const h = Number(height.replace(',', '.'));
     if (height && (!h || h < 120 || h > 230)) return toast('Рост в сантиметрах, например 180', 'info');
@@ -51,6 +52,7 @@ export function ProfileSetup({ onDone }: { onDone: () => void }) {
     setStep(1);
   };
   const saveSecond = () => {
+    Keyboard.dismiss();
     const patch = draftToPatch(draft);
     if (typeof patch === 'string') return toast(patch, 'info');
     if (Object.keys(patch).length) {
@@ -73,7 +75,8 @@ export function ProfileSetup({ onDone }: { onDone: () => void }) {
         </Press>
       </Row>
 
-      <ScrollView contentContainerStyle={{ padding: 18, gap: 14, flexGrow: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={{ padding: 18, gap: 14, flexGrow: 1 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets showsVerticalScrollIndicator={false}>
         {step === 0 ? (
           <Animated.View key="s0" entering={FadeInRight.duration(280)} exiting={FadeOutLeft.duration(180)} style={{ gap: 14 }}>
             <Txt v="title">Немного о тебе</Txt>
@@ -85,7 +88,7 @@ export function ProfileSetup({ onDone }: { onDone: () => void }) {
                   <Press key={s} onPress={() => setSex(s)} style={{ flex: 1 }}>
                     <View style={{ backgroundColor: t.c.card, borderRadius: t.r.lg, borderWidth: 2, borderColor: on ? t.c.accent : t.c.line, paddingVertical: 12, alignItems: 'center', gap: 6 }}>
                       <View pointerEvents="none" style={{ height: 150, width: '100%', overflow: 'hidden' }}>
-                        <BodyMap load={EMPTY} sex={s} height={150} />
+                        <BodyMap load={EMPTY} sex={s} height={150} interactive={false} />
                       </View>
                       <Text style={{ fontFamily: t.f.bold, fontSize: 15, color: on ? t.c.accentText : t.c.ink }}>{s === 'm' ? 'Мужской' : 'Женский'}</Text>
                     </View>
@@ -108,18 +111,19 @@ export function ProfileSetup({ onDone }: { onDone: () => void }) {
             </View>
           </Animated.View>
         )}
+        <View style={{ gap: 8, marginTop: 'auto', paddingTop: 8 }}>
+          {step === 0 ? (
+            <Btn title="Дальше" onPress={saveFirst} full />
+          ) : (
+            <Row gap={10}>
+              <Btn kind="secondary" title="Назад" onPress={() => setStep(0)} />
+              <Btn title="Готово" onPress={saveSecond} style={{ flex: 1 }} />
+            </Row>
+          )}
+        </View>
       </ScrollView>
+      </KeyboardAvoidingView>
 
-      <View style={{ paddingHorizontal: 18, gap: 8 }}>
-        {step === 0 ? (
-          <Btn title="Дальше" onPress={saveFirst} full />
-        ) : (
-          <Row gap={10}>
-            <Btn kind="secondary" title="Назад" onPress={() => setStep(0)} />
-            <Btn title="Готово" onPress={saveSecond} style={{ flex: 1 }} />
-          </Row>
-        )}
-      </View>
     </Animated.View>
   );
 }

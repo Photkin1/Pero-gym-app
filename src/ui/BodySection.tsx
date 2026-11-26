@@ -284,6 +284,8 @@ export function Stepper({ label, unit, value, onChange, step, bold, hint }: { la
         value={value}
         onChangeText={onChange}
         keyboardType="decimal-pad"
+        returnKeyType="done"
+        blurOnSubmit
         placeholder="—"
         placeholderTextColor={t.c.faint}
         selectionColor={t.c.accent}

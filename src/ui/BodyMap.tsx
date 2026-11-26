@@ -40,7 +40,7 @@ function mix(a: string, b: string, t: number) {
 
 type Pick = { side: Side; slug: string } | null;
 
-export const BodyMap = memo(function BodyMap({ load, mode = 'heat', sex = 'm', height = 300 }: { load: Map<Muscle, number>; mode?: 'heat' | 'zones'; sex?: Sex; height?: number }) {
+export const BodyMap = memo(function BodyMap({ load, mode = 'heat', sex = 'm', height = 300, interactive = true }: { load: Map<Muscle, number>; mode?: 'heat' | 'zones'; sex?: Sex; height?: number; interactive?: boolean }) {
   const t = useTheme();
   const [pick, setPick] = useState<Pick>(null);
   // Яркость считаем от самой нагруженной мышцы, но не меньше 6 подходов, чтобы 1–2 подхода не горели во всю силу
@@ -70,12 +70,12 @@ export const BodyMap = memo(function BodyMap({ load, mode = 'heat', sex = 'm', h
   const figure = (side: Side) => {
     const key = `${sex === 'm' ? 'body' : 'bodyFemale'}${side === 'front' ? 'Front' : 'Back'}` as keyof typeof BODY;
     return (
-      <Svg height={height} width={height / 2} viewBox={VIEWBOX[sex][side]}>
+      <Svg height={height} width={height / 2} viewBox={VIEWBOX[sex][side]} pointerEvents={interactive ? 'auto' : 'none'}>
         {BODY[key].map((part, i) => {
           const fill = colorOf(side, part.slug);
           const on = pick?.side === side && pick.slug === part.slug;
           return (
-            <G key={`${part.slug}${i}`} onPress={SKIN.has(part.slug) ? undefined : () => setPick(on ? null : { side, slug: part.slug })}>
+            <G key={`${part.slug}${i}`} onPress={!interactive || SKIN.has(part.slug) ? undefined : () => setPick(on ? null : { side, slug: part.slug })}>
               {part.d.map((d, j) => (
                 <Path key={j} d={d} fill={fill} stroke={on ? t.c.ink : t.dark ? '#121316' : '#f6f7f9'} strokeWidth={on ? 6 : 2} />
               ))}
