@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '../../theme';
 import { useLive } from '../../db/hooks';
-import { getActiveProgram, getOpenSession, listSessions, listSets, lastFinishedSession } from '../../db/repo';
+import { getActiveProgram, getOpenSession, listSessions, listSets, lastFinishedSession, lastPlannedSession } from '../../db/repo';
 import { beginEmptyWorkout, beginWorkout, defsFor } from '../../features/session';
 import { nextWorkout, phaseFor, programWeek, WEEKDAY_RU, weekdayOf } from '../../core/training';
 import { WEEKDAYS, type Workout } from '../../core/program';
@@ -25,6 +25,8 @@ function estimateMin(w: Workout) {
   return Math.round(w.exercises.reduce((s, x) => s + x.sets * (40 + parseDuration(x.rest)), 0) / 60 / 5) * 5;
 }
 
+const FREE = '__free';
+
 export default function Today() {
   const t = useTheme();
   const router = useRouter();
@@ -32,6 +34,7 @@ export default function Today() {
   const open = useLive(() => getOpenSession());
   const sessions = useLive(() => listSessions(1000));
   const last = useLive(() => lastFinishedSession());
+  const lastPlanned = useLive(() => lastPlannedSession());
   const openRows = useLive(() => (open ? listSets(open.id) : []), [open?.id]);
   const defs = useMemo(() => defsFor(program), [program]);
   const [picked, setPicked] = useState<string | null>(null);
@@ -39,9 +42,10 @@ export default function Today() {
 
   const now = new Date();
   const todayKey = dayKey(Date.now());
-  const doneToday = sessions.some((s) => dayKey(s.startedAt) === todayKey && s.programId === program?.id);
-  const nxt = program ? nextWorkout(program.program, last?.workoutId ?? null, doneToday) : null;
+  const doneToday = sessions.some((s) => dayKey(s.startedAt) === todayKey && s.programId === program?.id && s.workoutId !== 'free');
+  const nxt = program ? nextWorkout(program.program, lastPlanned?.workoutId ?? null, doneToday) : null;
   const wid = picked ?? nxt?.workoutId ?? program?.program.workouts[0]?.id;
+  const free = picked === FREE;
   const workout = program?.program.workouts.find((w) => w.id === wid);
   const week = programWeek(program?.startedAt ?? null);
   const phase = program ? phaseFor(program.program, week) : null;
@@ -59,18 +63,23 @@ export default function Today() {
   const needDeload = tired.length === 3 && tired.every((s) => (s.fatigue ?? 0) >= 4);
 
   const start = () => {
+    if (free) {
+      thud();
+      router.push(`/workout/${beginEmptyWorkout()}`);
+      return;
+    }
     if (!workout) return;
     thud();
     const id = beginWorkout(workout.id);
     router.push(`/workout/${id}`);
   };
 
-  const whenLabel = picked ? 'Выбрана вручную' : nxt?.when === 'today' ? 'Сегодня' : nxt?.when === 'next' ? 'Следующая' : nxt ? `${DAYS_FULL[(WEEKDAYS.indexOf(nxt.when as never) + 1) % 7]}` : '';
+  const whenLabel = free ? 'Без плана' : picked ? 'Выбрана вручную' : nxt?.when === 'today' ? 'Сегодня' : nxt?.when === 'next' ? 'Следующая' : nxt ? `${DAYS_FULL[(WEEKDAYS.indexOf(nxt.when as never) + 1) % 7]}` : '';
 
   return (
     <Screen
       headerBand
-      title={open ? 'Тренировка идёт' : workout ? workout.name : 'Pero'}
+      title={open ? 'Тренировка идёт' : free ? 'Свободная' : workout ? workout.name : 'Pero'}
       subtitle={`${DAYS_FULL[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]}`}
       right={<IconBtn name="gear" onPress={() => router.push('/settings')} color={t.id === 'energy' ? t.c.onHeader : t.c.ink} label="Настройки" />}
     >
@@ -109,7 +118,20 @@ export default function Today() {
         <Empty icon="list" title="Нет программы" text="Выбери готовую программу или собери свою" action={<Btn title="К программам" onPress={() => router.push('/program')} />} />
       )}
 
-      {program && workout && !open && (
+      {program && free && !open && (
+        <Animated.View key="free" entering={FadeInDown.duration(300)}>
+          <Card pad={16} style={{ gap: 14 }}>
+            <View style={{ gap: 2 }}>
+              <Txt v="label" color={t.c.accentText}>{whenLabel}</Txt>
+              <Txt v="h2">Свободная тренировка</Txt>
+              <Txt v="small">Пустая тренировка: упражнения добавляешь по ходу из библиотеки. Подходы попадут в историю и статистику, но очередь тренировок по программе не сдвинется.</Txt>
+            </View>
+            <Btn title="Начать свободную" icon="play" onPress={start} />
+          </Card>
+        </Animated.View>
+      )}
+
+      {program && workout && !free && !open && (
         <Animated.View entering={FadeInDown.duration(400)}>
           <Card pad={16} style={{ gap: 14 }}>
             <Row>
@@ -149,14 +171,14 @@ export default function Today() {
         </Animated.View>
       )}
 
-      {program && !open && program.program.workouts.length > 1 && (
+      {program && !open && (
         <View style={{ gap: 8 }}>
           <Txt v="label">Другая тренировка</Txt>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             {program.program.workouts.map((w) => (
-              <Chip key={w.id} label={w.name} on={w.id === wid} onPress={() => setPicked(w.id === nxt?.workoutId ? null : w.id)} />
+              <Chip key={w.id} label={w.name} on={!free && w.id === wid} onPress={() => setPicked(w.id === nxt?.workoutId ? null : w.id)} />
             ))}
-            <Chip label="Свободная" onPress={() => { const id = beginEmptyWorkout(); router.push(`/workout/${id}`); }} />
+            <Chip label="Свободная" on={free} onPress={() => setPicked(free ? null : FREE)} />
           </View>
         </View>
       )}

@@ -186,6 +186,11 @@ export function listSessions(limit = 200): SessionSummary[] {
   );
   return rows.map((r) => ({ ...toSession(r), sets: r.sets, tonnage: r.tonnage, exercises: r.exercises }));
 }
+/** Последняя тренировка по программе: свободные не сдвигают очередь */
+export function lastPlannedSession(): Session | null {
+  const r = db.getFirstSync<SessionRow>("SELECT * FROM session WHERE finished_at IS NOT NULL AND COALESCE(workout_id, '') <> 'free' ORDER BY started_at DESC LIMIT 1");
+  return r ? toSession(r) : null;
+}
 export function lastFinishedSession(): Session | null {
   const r = db.getFirstSync<SessionRow>('SELECT * FROM session WHERE finished_at IS NOT NULL ORDER BY started_at DESC LIMIT 1');
   return r ? toSession(r) : null;
