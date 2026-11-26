@@ -65,6 +65,8 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export async function prepareDb() {
   if (Platform.OS !== 'web') return;
   const g = globalThis as { crossOriginIsolated?: boolean; navigator?: Navigator };
+  // Просим постоянное хранилище, чтобы браузер сам не стёр данные (Safari чистит сайты через ~7 дней без визитов)
+  g.navigator?.storage?.persist?.().catch(() => {});
   // Первая загрузка без изоляции: service worker сейчас сам перезагрузит страницу.
   // Не трогаем базу, иначе эта страница займёт файлы и новая не сможет их открыть.
   if (g.crossOriginIsolated === false && g.navigator?.serviceWorker) {
