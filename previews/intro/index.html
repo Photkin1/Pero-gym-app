@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>pero studio — заставка</title>
+<style>
+@font-face{font-family:DS;src:url(DancingScript.ttf);font-weight:400 700}
+@font-face{font-family:MR;src:url(Manrope.ttf);font-weight:200 800}
+@font-face{font-family:CGI;src:url(CormorantItalic.ttf)}
+@font-face{font-family:CG;src:url(Cormorant.ttf)}
+:root{--bg:#f6f7f9;--fg:#15171c;--muted:#6b7180;--acc:#ff6b4a}
+.dark{--bg:#16181d;--fg:#f3f4f6;--muted:#9aa0ad}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--fg);font-family:MR,system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;transition:background .4s,color .4s}
+.stage{width:min(560px,100vw);aspect-ratio:1/1;max-height:70vh;display:grid;place-items:center;margin-top:4vh}
+svg{width:100%;height:100%;overflow:visible}
+.word{font-family:DS;font-weight:700;font-size:150px;fill:var(--fg)}
+.studio{fill:var(--muted);opacity:0}
+.s-a{font-family:CGI;font-size:40px;letter-spacing:2px}
+.s-b{font-family:CG;font-size:22px;letter-spacing:12px}
+.s-c{font-family:MR;font-weight:200;font-size:22px;letter-spacing:10px}
+.panel{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:16px;max-width:560px}
+.panel span{width:100%;text-align:center;font-size:13px;color:var(--muted);margin-top:6px}
+button{font:600 14px MR,sans-serif;border:1.5px solid color-mix(in srgb,var(--fg) 18%,transparent);background:transparent;color:var(--fg);padding:9px 14px;border-radius:99px;cursor:pointer}
+button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+</style></head>
+<body>
+<div class="stage">
+<svg viewBox="0 0 480 360" aria-label="pero studio">
+  <defs>
+    <linearGradient id="sweep" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#fff"/><stop offset=".85" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <mask id="write" maskUnits="userSpaceOnUse" x="0" y="0" width="480" height="360">
+      <rect id="pen" x="-60" y="0" width="0" height="360" fill="url(#sweep)"/>
+    </mask>
+    <linearGradient id="vane" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#ff5a3a"/><stop offset=".6" stop-color="#ff7a55"/><stop offset="1" stop-color="#ffa184"/>
+    </linearGradient>
+  </defs>
+  <text id="word" class="word" x="240" y="215" text-anchor="middle" mask="url(#write)">pero</text>
+  <text id="studio" class="studio s-a" x="240" y="275" text-anchor="middle">studio</text>
+  <g id="feather" style="opacity:0">
+    <g id="featherInner">
+      <path d="M0 64 C-7 34 -26 6 -23 -30 C-21 -58 -9 -80 0 -92 C11 -79 24 -56 24 -26 C24 2 12 36 0 64Z" fill="url(#vane)"/>
+      <path d="M-21 -14 C-15 -12 -11 -8 -8 -3 M18 -40 C12 -38 8 -34 6 -30" stroke="var(--bg)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      <g stroke="#fff" stroke-opacity=".28" stroke-width="1" fill="none">
+        <path d="M0 40 L-12 22 M0 20 L-17 -2 M0 -2 L-18 -26 M0 -26 L-14 -52 M0 30 L13 10 M0 8 L18 -16 M0 -16 L18 -44 M0 -44 L11 -66"/>
+      </g>
+      <path d="M0 92 C1 40 1 -30 0 -88" stroke="#fff" stroke-opacity=".85" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M0 92 L0 64" stroke="var(--fg)" stroke-opacity=".55" stroke-width="2.4" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>
+</div>
+<div class="panel">
+  <button id="replay" class="on">▶ Повторить</button>
+  <button id="theme">Тёмная тема</button>
+  <span>Шрифт «studio»</span>
+  <button data-s="s-a" class="on">A · Cormorant курсив</button>
+  <button data-s="s-b">B · CORMORANT капс</button>
+  <button data-s="s-c">C · manrope тонкий</button>
+</div>
+<script>
+const word=document.getElementById('word'),pen=document.getElementById('pen'),studio=document.getElementById('studio'),
+      feather=document.getElementById('feather'),inner=document.getElementById('featherInner');
+let anims=[],raf=0;
+function play(){
+  anims.forEach(a=>a.cancel());anims=[];
+  const bb=word.getBBox(), o=word.getExtentOfChar(3);
+  // финальная точка пера: над «o», слегка вправо, кончик смотрит вверх-вправо
+  const fx=o.x+o.width*0.78, fy=o.y+o.height*0.18, rot=34, sc=0.62;
+  const W=bb.x+bb.width+140;
+  anims.push(pen.animate([{x:-60+'px',width:'0px'},{width:W+'px'}],{duration:1900,easing:'cubic-bezier(.45,.05,.4,1)',fill:'forwards'}));
+  // падение: плавное затухающее качание (маятник), без рывков
+  cancelAnimationFrame(raf);
+  const D=3200, delay=150, t0=performance.now()+delay, A=46, H=250, swings=1.6;
+  const ease=p=>1-Math.pow(1-p,2.2);
+  const frame=now=>{
+    let p=Math.min(Math.max((now-t0)/D,0),1);
+    const damp=Math.pow(1-p,1.6), ph=2*Math.PI*swings*p;
+    const x=fx-18*(1-ease(p))+A*damp*Math.sin(ph);
+    const y=fy-H*(1-ease(p));
+    const r=rot+16*damp*Math.cos(ph);          // наклон следует за движением
+    feather.setAttribute('transform',`translate(${x} ${y}) rotate(${r}) scale(${sc})`);
+    feather.style.opacity=Math.min(p/0.12,1);
+    if(p<1) raf=requestAnimationFrame(frame); else land();
+  };
+  raf=requestAnimationFrame(frame);
+  function land(){
+    anims.push(inner.animate([{transform:'rotate(0deg)'},{transform:'rotate(-2.5deg)',offset:.45},{transform:'rotate(.8deg)',offset:.8},{transform:'rotate(0deg)'}],{duration:900,easing:'ease-in-out'}));
+  }
+  anims.push(studio.animate([{opacity:0,transform:'translateY(8px)',letterSpacing:getComputedStyle(studio).letterSpacing.replace(/[\d.]+/,m=>+m+10)},{opacity:1,transform:'none'}],
+      {duration:1000,delay:2300,easing:'cubic-bezier(.2,.7,.2,1)',fill:'both'}));
+}
+document.getElementById('replay').onclick=play;
+document.getElementById('theme').onclick=e=>{document.body.classList.toggle('dark');e.target.textContent=document.body.classList.contains('dark')?'Светлая тема':'Тёмная тема'};
+document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-s]').forEach(x=>x.classList.toggle('on',x===b));
+  studio.setAttribute('class','studio '+b.dataset.s);play();});
+if(location.hash==='#end'){document.fonts.ready.then(()=>{play();anims.forEach(a=>a.finish());cancelAnimationFrame(raf);feather.style.opacity=1;feather.setAttribute('transform',`translate(${word.getExtentOfChar(3).x+word.getExtentOfChar(3).width*0.78} ${word.getExtentOfChar(3).y+word.getExtentOfChar(3).height*0.18}) rotate(34) scale(0.62)`)})}
+else document.fonts.ready.then(play);
+</script>
+</body></html>
