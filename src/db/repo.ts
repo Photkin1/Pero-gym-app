@@ -125,6 +125,26 @@ export function patchBundledPrograms() {
   setSetting(KEY, true);
 }
 
+/** Шраги в «Верх B» переезжают в конец тренировки, чтобы не утомлять хват перед тягами */
+export function patchShrugsLast() {
+  const KEY = 'patch.ul4d.shrugs-last';
+  if (getSetting(KEY, false)) return;
+  const rows = db.getAllSync<{ id: number; json: string }>('SELECT id, json FROM program');
+  for (const r of rows) {
+    const p = JSON.parse(r.json) as Program;
+    if (p.name !== 'Верх/низ, 4 дня') continue;
+    const ub = p.workouts.find((x) => x.id === 'upper-b');
+    if (!ub) continue;
+    const i = ub.exercises.findIndex((e) => e.exercise === 'shrug');
+    if (i < 0 || i === ub.exercises.length - 1) continue;
+    const [shrug] = ub.exercises.splice(i, 1);
+    delete shrug.group;
+    ub.exercises.push(shrug);
+    db.runSync('UPDATE program SET json = ?, updated_at = ? WHERE id = ?', JSON.stringify(p), Date.now(), r.id);
+  }
+  setSetting(KEY, true);
+}
+
 // ───────── Предпочтения по упражнению ─────────
 
 export type ExercisePref = { variantId: string | null; sides: 'both' | 'each' | null; increment: number | null };

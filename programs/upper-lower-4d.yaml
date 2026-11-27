@@ -61,9 +61,9 @@ workouts:
       - { exercise: pec-deck, sets: 2, reps: 10-15, rir: 0-1, rest: 90s, start_weight: 70 }
       - { exercise: reverse-pec-deck, sets: 3, reps: 12-15, rir: 0-1, rest: 90s, start_weight: 40 }
       - { exercise: lateral-raise, variant: cable, sides: each, sets: 3, reps: 12-15, rir: 0-1, rest: 60s }
-      - { exercise: shrug, variant: dumbbell, sets: 3, reps: 10-15, rir: 0-1, rest: 60s, note: "Пауза вверху 1 с, плечи не крутить" }
       - { exercise: hammer-curl, variant: dumbbell, group: A, sets: 2, reps: 10-12, rir: 0-1, rest: 90s }
       - { exercise: triceps-pushdown, variant: rope, group: A, sets: 2, reps: 10-12, rir: 0-1, rest: 90s }
+      - { exercise: shrug, variant: dumbbell, sets: 3, reps: 10-15, rir: 0-1, rest: 60s, note: "В конце, чтобы не утомлять хват перед тягами. Пауза вверху 1 с, плечи не крутить" }
 
   - id: lower-b
     name: Низ B
