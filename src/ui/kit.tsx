@@ -5,7 +5,7 @@ import {
   type StyleProp, type TextInputProps, type TextStyle, type ViewStyle,
 } from 'react-native';
 import Animated, {
-  FadeIn, FadeOut, SlideInDown, SlideOutDown, useAnimatedStyle, useSharedValue, withSpring, withTiming,
+  Easing, FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withSpring, withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -246,17 +246,28 @@ export function Empty({ icon, title, text, action }: { icon: IconName; title: st
 export function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title?: string; children: ReactNode }) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
+  // Без пружины и без анимации закрытия: шторка выезжает за ~140 мс и исчезает мгновенно
+  const ty = useSharedValue(SHEET_START);
+  const scrim = useSharedValue(0);
+  useEffect(() => {
+    if (open) {
+      ty.value = SHEET_START;
+      scrim.value = 0;
+      ty.value = withTiming(0, { duration: 140, easing: Easing.out(Easing.cubic) });
+      scrim.value = withTiming(1, { duration: 120 });
+    }
+  }, [open]);
+  const sheetStyle = useAnimatedStyle(() => ({ transform: [{ translateY: ty.value }] }));
+  const scrimStyle = useAnimatedStyle(() => ({ opacity: scrim.value }));
   return (
     <Modal visible={open} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent navigationBarTranslucent>
       {open && (
         <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-          <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)} style={[StyleSheet.absoluteFill, { backgroundColor: t.c.scrim }]}>
+          <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: t.c.scrim }, scrimStyle]}>
             <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel="Закрыть" />
           </Animated.View>
           <Animated.View
-            entering={SlideInDown.springify().damping(22).stiffness(220)}
-            exiting={SlideOutDown.duration(180)}
-            style={{ backgroundColor: t.c.card, borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 18, paddingTop: 10, paddingBottom: insets.bottom + 18, maxHeight: '88%' }}
+            style={[{ backgroundColor: t.c.card, borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 18, paddingTop: 10, paddingBottom: insets.bottom + 18, maxHeight: '88%' }, sheetStyle]}
           >
             <View style={{ alignSelf: 'center', width: 40, height: 5, borderRadius: 3, backgroundColor: t.c.chip, marginBottom: 12 }} />
             {title && <Txt v="h2" style={{ marginBottom: 12 }}>{title}</Txt>}
@@ -269,6 +280,7 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
     </Modal>
   );
 }
+const SHEET_START = 420;
 
 // ───────── Всплывающее сообщение ─────────
 
@@ -296,8 +308,8 @@ export function ToastHost() {
   return (
     <Animated.View
       key={m.text}
-      entering={SlideInDown.springify().damping(18)}
-      exiting={FadeOut}
+      entering={FadeIn.duration(120)}
+      exiting={FadeOut.duration(120)}
       pointerEvents="none"
       style={{ position: 'absolute', left: 16, right: 16, bottom: insets.bottom + 92, backgroundColor: t.dark ? '#f1f2f4' : '#15171a', borderRadius: 16, paddingVertical: 13, paddingHorizontal: 16, flexDirection: 'row', gap: 10, alignItems: 'center' }}
     >

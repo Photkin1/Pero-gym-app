@@ -313,7 +313,7 @@ export function RestBar({ pending, onStart }: { pending: { setId: number; planne
   const wrap = { position: 'absolute' as const, left: 12, right: 12, bottom: insets.bottom + 12 };
   if (!rest && pending) {
     return (
-      <Animated.View entering={FadeInDown.springify().damping(18)} style={wrap}>
+      <Animated.View entering={FadeInDown.duration(150)} style={wrap}>
         <Press onPress={onStart} style={{ backgroundColor: t.c.accent, borderRadius: t.r.lg, height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
           <Icon name="timer" size={22} color={t.c.onAccent} />
           <Text style={{ fontFamily: t.f.bold, fontSize: 17, color: t.c.onAccent }}>Начать отдых · {clock(pending.plannedS)}</Text>
@@ -326,7 +326,7 @@ export function RestBar({ pending, onStart }: { pending: { setId: number; planne
   const over = left <= 0;
   const progress = Math.min(1, (Date.now() - rest.startedAt) / (rest.endsAt - rest.startedAt));
   return (
-    <Animated.View entering={FadeInDown.springify().damping(18)} style={wrap}>
+    <Animated.View entering={FadeInDown.duration(150)} style={wrap}>
       <View style={{ backgroundColor: t.dark ? t.c.raised : '#15171a', borderRadius: t.r.lg, padding: 12, gap: 10 }}>
         <Row>
           <View style={{ flex: 1 }}>
