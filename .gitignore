@@ -44,5 +44,5 @@ yarn-error.*
 src/data/*.json
 
 # нативные папки генерируются (expo prebuild)
-android/
+/android/
 ios/

@@ -1,7 +1,7 @@
 // Базовые элементы интерфейса. Экраны собираются только из них, поэтому темы и анимации работают везде одинаково.
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import {
-  Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View,
+  Modal, PanResponder, Pressable, ScrollView, StyleSheet, Text, TextInput, View,
   type StyleProp, type TextInputProps, type TextStyle, type ViewStyle,
 } from 'react-native';
 import Animated, {
@@ -257,6 +257,32 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
       scrim.value = withTiming(1, { duration: 120 });
     }
   }, [open]);
+  // Смахивание вниз за верхнюю часть шторки (полоска и заголовок)
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  const pan = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (_, g) => g.dy > 4 && Math.abs(g.dy) > Math.abs(g.dx),
+        onPanResponderMove: (_, g) => {
+          ty.value = Math.max(0, g.dy);
+          scrim.value = Math.max(0.3, 1 - g.dy / 500);
+        },
+        onPanResponderRelease: (_, g) => {
+          if (g.dy > 70 || g.vy > 0.6) closeRef.current();
+          else {
+            ty.value = withTiming(0, { duration: 120 });
+            scrim.value = withTiming(1, { duration: 120 });
+          }
+        },
+        onPanResponderTerminate: () => {
+          ty.value = withTiming(0, { duration: 120 });
+          scrim.value = withTiming(1, { duration: 120 });
+        },
+      }),
+    [],
+  );
   const sheetStyle = useAnimatedStyle(() => ({ transform: [{ translateY: ty.value }] }));
   const scrimStyle = useAnimatedStyle(() => ({ opacity: scrim.value }));
   return (
@@ -269,8 +295,10 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
           <Animated.View
             style={[{ backgroundColor: t.c.card, borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 18, paddingTop: 10, paddingBottom: insets.bottom + 18, maxHeight: '88%' }, sheetStyle]}
           >
-            <View style={{ alignSelf: 'center', width: 40, height: 5, borderRadius: 3, backgroundColor: t.c.chip, marginBottom: 12 }} />
-            {title && <Txt v="h2" style={{ marginBottom: 12 }}>{title}</Txt>}
+            <View {...pan.panHandlers} style={{ marginHorizontal: -18, paddingHorizontal: 18, marginTop: -10, paddingTop: 10 }}>
+              <View style={{ alignSelf: 'center', width: 40, height: 5, borderRadius: 3, backgroundColor: t.c.chip, marginBottom: 12 }} />
+              {title ? <Txt v="h2" style={{ marginBottom: 12 }}>{title}</Txt> : <View style={{ height: 8 }} />}
+            </View>
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
               {children}
             </ScrollView>
