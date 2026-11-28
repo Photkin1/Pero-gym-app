@@ -125,6 +125,49 @@ export function patchBundledPrograms() {
   setSetting(KEY, true);
 }
 
+/**
+ * Разовая правка «Верх B» после первой тренировки: шраги в конец и тяжелее,
+ * подсказки по технике в тяге блока, тяге гантели и разгибаниях на блоке.
+ * Заметки и стартовые веса ставятся, только если там пусто: свои правки не затираются.
+ */
+export function patchUpperB() {
+  const KEY = 'patch.ul4d.upper-b-after-first';
+  if (getSetting(KEY, false)) return;
+  const NOTES: Record<string, string> = {
+    'lat-pulldown': 'Хват без большого пальца или лямки. Сначала опусти лопатки, потом локти к рёбрам',
+    'one-arm-db-row': 'Тяни по дуге к тазу, локоть у корпуса. Внизу полностью выпрями руку, корпус не крути',
+    'triceps-pushdown': 'Локти прижаты и не двигаются. Внизу разведи канат, пауза 1 с',
+    shrug: 'В конце, чтобы не утомлять хват перед тягами. Вес одной гантели. Пауза вверху 1 с, плечи не крутить',
+  };
+  const rows = db.getAllSync<{ id: number; json: string }>('SELECT id, json FROM program');
+  for (const r of rows) {
+    const p = JSON.parse(r.json) as Program;
+    if (p.name !== 'Верх/низ, 4 дня') continue;
+    const ub = p.workouts.find((x) => x.id === 'upper-b');
+    if (!ub) continue;
+    let changed = false;
+    const i = ub.exercises.findIndex((e) => e.exercise === 'shrug');
+    if (i >= 0) {
+      const shrug = ub.exercises[i];
+      if (i !== ub.exercises.length - 1) {
+        ub.exercises.splice(i, 1);
+        delete shrug.group;
+        ub.exercises.push(shrug);
+      }
+      if (shrug.rir === '0-1') shrug.rir = '1-2';
+      if (shrug.start_weight == null) shrug.start_weight = 26;
+      if (shrug.note === 'Пауза вверху 1 с, плечи не крутить') delete shrug.note;
+      changed = true;
+    }
+    for (const e of ub.exercises) {
+      if (NOTES[e.exercise] && !e.note) { e.note = NOTES[e.exercise]; changed = true; }
+      if (e.exercise === 'one-arm-db-row' && e.start_weight == null) { e.start_weight = 20; changed = true; }
+    }
+    if (changed) db.runSync('UPDATE program SET json = ?, updated_at = ? WHERE id = ?', JSON.stringify(p), Date.now(), r.id);
+  }
+  setSetting(KEY, true);
+}
+
 // ───────── Предпочтения по упражнению ─────────
 
 export type ExercisePref = { variantId: string | null; sides: 'both' | 'each' | null; increment: number | null };

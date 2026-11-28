@@ -55,15 +55,15 @@ workouts:
     name: Верх B
     exercises:
       - { exercise: overhead-press, variant: machine, sets: 3, reps: 6-10, rir: 1-2, rest: 2m30s, start_weight: 55 }
-      - { exercise: lat-pulldown, variant: neutral, sets: 3, reps: 8-12, rir: 1-2, rest: 2m }
+      - { exercise: lat-pulldown, variant: neutral, sets: 3, reps: 8-12, rir: 1-2, rest: 2m, note: "Хват без большого пальца или лямки. Сначала опусти лопатки, потом локти к рёбрам" }
       - { exercise: chest-press-machine, sets: 3, reps: 8-12, rir: 1-2, rest: 2m30s }
-      - { exercise: one-arm-db-row, sets: 3, reps: 8-12, rir: 1-2, rest: 2m }
+      - { exercise: one-arm-db-row, sets: 3, reps: 8-12, rir: 1-2, rest: 2m, start_weight: 20, note: "Тяни по дуге к тазу, локоть у корпуса. Внизу полностью выпрями руку, корпус не крути" }
       - { exercise: pec-deck, sets: 2, reps: 10-15, rir: 0-1, rest: 90s, start_weight: 70 }
       - { exercise: reverse-pec-deck, sets: 3, reps: 12-15, rir: 0-1, rest: 90s, start_weight: 40 }
       - { exercise: lateral-raise, variant: cable, sides: each, sets: 3, reps: 12-15, rir: 0-1, rest: 60s }
-      - { exercise: shrug, variant: dumbbell, sets: 3, reps: 10-15, rir: 0-1, rest: 60s, note: "Пауза вверху 1 с, плечи не крутить" }
       - { exercise: hammer-curl, variant: dumbbell, group: A, sets: 2, reps: 10-12, rir: 0-1, rest: 90s }
-      - { exercise: triceps-pushdown, variant: rope, group: A, sets: 2, reps: 10-12, rir: 0-1, rest: 90s }
+      - { exercise: triceps-pushdown, variant: rope, group: A, sets: 2, reps: 10-12, rir: 0-1, rest: 90s, note: "Локти прижаты и не двигаются. Внизу разведи канат, пауза 1 с" }
+      - { exercise: shrug, variant: dumbbell, sets: 3, reps: 10-15, rir: 1-2, rest: 60s, start_weight: 26, note: "В конце, чтобы не утомлять хват перед тягами. Вес одной гантели. Пауза вверху 1 с, плечи не крутить" }
 
   - id: lower-b
     name: Низ B

@@ -8,7 +8,7 @@ import { useFonts } from 'expo-font';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { migrate, prepareDb } from '../db/db';
-import { patchBundledPrograms, seedIfEmpty } from '../db/repo';
+import { patchBundledPrograms, patchUpperB, seedIfEmpty } from '../db/repo';
 import { ThemeProvider, useTheme } from '../theme';
 import { FONTS } from '../theme/themes';
 import { ToastHost } from '../ui/kit';
@@ -26,6 +26,7 @@ const dbPromise = prepareDb()
     migrate();
     seedIfEmpty();
     patchBundledPrograms();
+    patchUpperB();
     dbReady = true;
   })
   .catch((e: unknown) => {
