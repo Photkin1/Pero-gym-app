@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Варианты оформления приложения</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;600;800&family=Oswald:wght@500;600;700&family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;600;800&family=Unbounded:wght@600;800&family=Onest:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday: a design pick, five shipped-looking phones side by side
+   IDEA a showroom shelf of five phones, each running the same workout screen
+   PICTURE the five phone mock-ups themselves, same data, different skin
+   COLOUR page: plain white / near-black so each phone's own palette leads
+   TYPE Inter for the page; each phone uses its own pair
+   LAYOUT title, then phones in a wrapping grid; below, borrowed ideas table */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#111214);--ink:light-dark(#15171a,#eceef1);--mut:light-dark(#5b6270,#a3a9b4);--line:light-dark(#e3e5e9,#2a2d33);--soft:light-dark(#f4f5f7,#1a1c20)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:1640px;margin:0 auto}
+h1{font-size:clamp(30px,4vw,44px);line-height:1.05;letter-spacing:-.02em;margin:0 0 10px;text-wrap:balance}
+h2{font-size:28px;line-height:1.1;letter-spacing:-.02em;margin:0 0 14px}
+.lead{color:var(--mut);max-width:68ch;margin:0}
+.shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:36px 24px;margin-top:28px}
+.item{display:flex;flex-direction:column;align-items:center;gap:14px}
+.cap{max-width:300px;width:100%}
+.cap b{font-size:20px;letter-spacing:-.01em}
+.cap b span{color:var(--mut);font-weight:500;margin-right:6px}
+.cap p{margin:4px 0 0;color:var(--mut);font-size:15px;line-height:1.45}
+/* phone */
+.ph{width:300px;height:640px;border-radius:40px;padding:10px;background:#0b0b0c;box-shadow:0 0 0 1px #2b2b2e,0 18px 40px -18px rgba(0,0,0,.45);flex:none}
+.sc{height:100%;border-radius:31px;overflow:hidden;background:var(--pbg);color:var(--pink);font-family:var(--fb);display:flex;flex-direction:column;position:relative}
+.sb{display:flex;justify-content:space-between;padding:10px 22px 4px;font-size:13px;font-weight:600}
+.sb i{font-style:normal;letter-spacing:1px}
+.hd{padding:8px 16px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.hd .t{font-family:var(--fd);font-weight:var(--fdw);font-size:19px;line-height:1.1}
+.hd .s{font-size:13px;color:var(--pmut)}
+.clock{font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;padding:5px 10px;border-radius:var(--rs);background:var(--pchip);white-space:nowrap}
+.body{flex:1;overflow:hidden;padding:0 12px;display:flex;flex-direction:column;gap:10px}
+.card{background:var(--pcard);border-radius:var(--r);padding:12px;border:var(--pborder)}
+.ex{display:flex;gap:10px;align-items:center}
+.thumb{width:44px;height:44px;border-radius:var(--rs);background:var(--pchip);flex:none;display:grid;place-items:center}
+.thumb svg{width:32px;height:32px}
+.ex .n{font-family:var(--fd);font-weight:var(--fdw);font-size:16px;line-height:1.15}
+.chips{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap}
+.chip{font-size:11.5px;padding:2px 8px;border-radius:99px;background:var(--pchip);color:var(--pink);white-space:nowrap}
+.chip.on{background:var(--pacc);color:var(--pacc-ink)}
+.hint{font-size:12.5px;color:var(--pmut);margin:8px 0 2px;line-height:1.35}
+.hint b{color:var(--pacc2);font-weight:700}
+table.sets{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:4px;font-variant-numeric:tabular-nums}
+.sets th{font-size:11px;font-weight:500;color:var(--pmut);text-align:center;padding:4px 2px}
+.sets td{text-align:center;padding:5px 2px;border-top:1px solid var(--pline)}
+.sets td.prev{color:var(--pmut);font-size:12px;white-space:nowrap}
+.sets .box{display:inline-block;min-width:38px;padding:3px 4px;border-radius:var(--rs);background:var(--pinput);font-weight:700}
+.sets tr.done td{background:var(--pdone)}
+.sets tr.act .box{outline:2px solid var(--pacc)}
+.tick{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:var(--rs);background:var(--pchip);font-size:13px}
+tr.done .tick{background:var(--pacc);color:var(--pacc-ink)}
+.wu{color:var(--pwu);font-weight:700}
+.timer{display:flex;align-items:center;gap:10px}
+.timer .big{font-family:var(--fn);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums;line-height:1}
+.bar{flex:1;height:8px;border-radius:9px;background:var(--pchip);overflow:hidden}
+.bar i{display:block;height:100%;width:70%;background:var(--pacc)}
+.timer .adj{font-size:12px;color:var(--pmut);white-space:nowrap}
+.btn{border:0;border-radius:var(--rs);padding:8px 12px;font:600 13px var(--fb);background:var(--pacc);color:var(--pacc-ink)}
+.spark{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+.spark .v{font-family:var(--fn);font-size:22px;font-weight:800;line-height:1}
+.spark .d{font-size:12px;color:var(--pacc2);font-weight:700}
+.spark .l{font-size:12px;color:var(--pmut)}
+.spark svg{width:120px;height:38px;flex:none}
+.nx{font-size:13px;color:var(--pmut);display:flex;justify-content:space-between}
+.nav{display:flex;justify-content:space-around;padding:8px 6px 14px;border-top:1px solid var(--pline);background:var(--pnav);font-size:10.5px;color:var(--pmut)}
+.nav div{display:flex;flex-direction:column;align-items:center;gap:2px}
+.nav div.on{color:var(--pacc2)}
+.nav svg{width:20px;height:20px}
+/* themes */
+.t1{--pbg:#121316;--pcard:#1b1d22;--pink:#f1f2f4;--pmut:#8d93a0;--pacc:#ff6b4a;--pacc2:#ff8a6e;--pacc-ink:#1a0d08;--pchip:#262931;--pinput:#2c3039;--pline:#262931;--pdone:rgba(255,107,74,.08);--pwu:#e8b04b;--pnav:#16171b;--pborder:0;--fd:Manrope,sans-serif;--fdw:800;--fb:Manrope,sans-serif;--fn:Manrope,sans-serif;--r:18px;--rs:10px}
+.t2{--pbg:#ffffff;--pcard:#ffffff;--pink:#101114;--pmut:#727782;--pacc:#2f5bff;--pacc2:#2f5bff;--pacc-ink:#fff;--pchip:#f0f2f6;--pinput:#f0f2f6;--pline:#eceef2;--pdone:#f2f6ff;--pwu:#c27a00;--pnav:#fafbfc;--pborder:1px solid #e6e8ee;--fd:Inter,sans-serif;--fdw:700;--fb:Inter,sans-serif;--fn:Inter,sans-serif;--r:14px;--rs:8px}
+.t3{--pbg:#d9d6cf;--pcard:#efede8;--pink:#141414;--pmut:#5d5a54;--pacc:#ffcc00;--pacc2:#141414;--pacc-ink:#141414;--pchip:#c9c5bc;--pinput:#ffffff;--pline:#cfcbc3;--pdone:#fff4c2;--pwu:#8a5a00;--pnav:#141414;--pborder:2px solid #141414;--fd:Oswald,sans-serif;--fdw:600;--fb:Roboto,sans-serif;--fn:Oswald,sans-serif;--r:4px;--rs:3px}
+.t3 .hd .t,.t3 .ex .n{text-transform:uppercase;letter-spacing:.02em}
+.t3 .nav{color:#a7a39b}.t3 .nav div.on{color:#ffcc00}
+.t4{--pbg:#fbfbf8;--pcard:transparent;--pink:#1c2a4a;--pmut:#6b7488;--pacc:#1f4fd6;--pacc2:#c8322c;--pacc-ink:#fff;--pchip:#e7ecf7;--pinput:transparent;--pline:#cfd8ea;--pdone:transparent;--pwu:#c8322c;--pnav:#fbfbf8;--pborder:0;--fd:"JetBrains Mono",monospace;--fdw:800;--fb:Inter,sans-serif;--fn:"JetBrains Mono",monospace;--r:0;--rs:4px}
+.t4 .sc{background-color:#fbfbf8;background-image:linear-gradient(#e4e9f3 1px,transparent 1px),linear-gradient(90deg,#e4e9f3 1px,transparent 1px);background-size:14px 14px}
+.t4 .body{border-left:2px solid #f0b4b0;margin-left:18px;padding-left:10px}
+.t4 .card{padding:6px 4px;border-bottom:1px dashed #b9c5dd}
+.t4 .sets .box{border-bottom:2px solid #1f4fd6;border-radius:0;font-family:"JetBrains Mono",monospace;color:#1f4fd6}
+.t4 tr.done .tick{background:transparent;color:#1f4fd6;font-weight:800}
+.t4 .sets tr.act .box{outline:0;background:#fff3b0}
+.t5{--pbg:#eef0ff;--pcard:#ffffff;--pink:#14163a;--pmut:#6a6e95;--pacc:#ff5a1f;--pacc2:#ff5a1f;--pacc-ink:#fff;--pchip:#eceefe;--pinput:#eceefe;--pline:#eceefe;--pdone:#fff1ea;--pwu:#7b61ff;--pnav:#ffffff;--pborder:0;--fd:Unbounded,sans-serif;--fdw:600;--fb:Onest,sans-serif;--fn:Unbounded,sans-serif;--r:22px;--rs:12px}
+.t5 .top{background:#1f3cff;color:#fff;padding-bottom:16px;border-radius:0 0 26px 26px;margin-bottom:-6px}
+.t5 .top .s{color:#c9d0ff}.t5 .top .clock{background:rgba(255,255,255,.16)}
+.t5 .card{box-shadow:0 6px 16px -10px rgba(31,60,255,.35)}
+.t5 .hd .t{font-size:16px}.t5 .ex .n{font-size:14px}.t5 .timer .big{font-size:24px}
+/* ideas */
+.ideas{border-top:1px solid var(--line)}
+.tbl{overflow-x:auto}
+table.id{border-collapse:collapse;width:100%;max-width:1100px}
+.id th,.id td{text-align:left;padding:10px 12px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.id th{font-size:13px;color:var(--mut);font-weight:600}
+.id td:first-child{font-weight:700;white-space:nowrap}
+.id td:last-child{white-space:nowrap}
+.yes{color:light-dark(#1d7a3e,#6fd49a);font-weight:700}
+.later{color:var(--mut);font-weight:600}
+.note{color:var(--mut);font-size:14px;margin-top:14px;max-width:80ch}
+@media(max-width:600px){.id td,.id th{font-size:14px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flex;justify-content:space-between;gap:12px;border:0;padding:3px 0;white-space:normal!important}.stack td::before{content:attr(data-l);color:var(--mut);font-weight:500;flex:none}}
+@media(max-width:340px){.ph{transform:scale(.92);transform-origin:top center;margin-bottom:-50px}}
+</style>
+</head>
+<body>
+<section class="band"><div class="wrap">
+  <h1>Пять вариантов оформления: выбери один</h1>
+  <p class="lead">На всех пяти один и тот же экран, ради которого и делается приложение: идёт тренировка «Верх А», ты на жиме лёжа, третий подход. Данные примерные. Тему можно будет переключать в настройках, но основной вид выберем один.</p>
+  <div class="shelf" id="shelf"></div>
+</div></section>
+
+<section class="band ideas"><div class="wrap">
+  <h2>Что стоит взять у похожих приложений</h2>
+  <p class="lead">Собрал по тому, что знаю о самых популярных дневниках тренировок. Отмечено, что предлагаю сделать в первой версии, а что позже.</p>
+  <div class="tbl" style="margin-top:16px"><table class="id stack">
+    <thead><tr><th>Откуда</th><th>Идея</th><th>Когда</th></tr></thead>
+    <tbody id="ideas"></tbody>
+  </table></div>
+  <p class="note">Ни одна картинка или элемент интерфейса из этих приложений не копируется: берём только идеи функций.</p>
+</div></section>
+
+<script>
+{
+const themes=[
+ {c:'t1',name:'Графит',d:'Тёмная, спокойная, с коралловым акцентом. Не слепит в зале и экономит батарею на AMOLED-экране.'},
+ {c:'t2',name:'Мел',d:'Светлая и строгая: белый фон, чёрный текст, один синий цвет. Максимум читаемости, ничего лишнего.'},
+ {c:'t3',name:'Железо',d:'Как табличка в старом зале: бетонно-серый фон, жирный узкий шрифт капсом, жёлтый как на маркировке.'},
+ {c:'t4',name:'Дневник',d:'Тетрадь в клетку с красными полями: веса будто вписаны ручкой. Для тех, кто раньше записывал на бумаге.'},
+ {c:'t5',name:'Энергия',d:'Яркая: насыщенный синий, оранжевые кнопки, крупные скруглённые карточки. Самая «мобильная» по ощущению.'}
+];
+const bench='<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 22h24M9 22v5M23 22v5M5 12h22M7 8v8M25 8v8M3 10v4M29 10v4"/><circle cx="16" cy="18" r="2.5"/></svg>';
+const ic={
+ w:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"/></svg>',
+ p:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
+ s:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+ h:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
+};
+const rows=[
+ {n:'Р',prev:'40×8',kg:'40',r:'8',rir:'',st:'done',wu:1},
+ {n:'1',prev:'70×8',kg:'72,5',r:'8',rir:'2',st:'done'},
+ {n:'2',prev:'70×8',kg:'72,5',r:'7',rir:'1',st:'done'},
+ {n:'3',prev:'70×7',kg:'72,5',r:'',rir:'',st:'act'}
+];
+const pts=[78,79,79,81,82,82,84,86];
+const spark=()=>{const W=120,H=38,mn=76,mx=88;const p=pts.map((v,i)=>[4+i*(W-8)/(pts.length-1),H-4-(v-mn)/(mx-mn)*(H-8)]);
+ const last=p[p.length-1];
+ return `<svg viewBox="0 0 ${W} ${H}"><polyline points="${p.map(q=>q.join(',')).join(' ')}" fill="none" stroke="var(--pacc)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${last[0]}" cy="${last[1]}" r="3.5" fill="var(--pacc)"/></svg>`};
+const phone=t=>`
+<div class="ph"><div class="sc">
+ <div class="top">
+ <div class="sb"><span>18:42</span><i>▴ ▮</i></div>
+ <div class="hd"><div><div class="t">Верх А</div><div class="s">Понедельник · 3 из 7 упражнений</div></div><div class="clock">41:12</div></div>
+ </div>
+ <div class="body">
+  <div class="card">
+   <div class="ex"><div class="thumb">${bench}</div><div><div class="n">Жим штанги лёжа</div>
+    <div class="chips"><span class="chip on">Штанга</span><span class="chip">Гантели</span><span class="chip">Смит</span></div></div></div>
+   <div class="hint">Цель 3 × 6–8, RIR 1–2. Прошлый раз все подходы по 8: <b>+2,5 кг</b></div>
+   <table class="sets"><thead><tr><th>№</th><th>Прошлый</th><th>кг</th><th>Повт</th><th>RIR</th><th></th></tr></thead><tbody>
+   ${rows.map(r=>`<tr class="${r.st}"><td class="${r.wu?'wu':''}">${r.n}</td><td class="prev">${r.prev}</td><td><span class="box">${r.kg}</span></td><td><span class="box">${r.r||'–'}</span></td><td><span class="box">${r.rir||'–'}</span></td><td><span class="tick">${r.st==='done'?'✓':''}</span></td></tr>`).join('')}
+   </tbody></table>
+  </div>
+  <div class="card timer"><div><div class="big">1:47</div><div class="adj">отдых из 2:30</div></div><div class="bar"><i></i></div><button class="btn" type="button">+15 с</button></div>
+  <div class="card spark"><div><div class="l">Расчётный 1ПМ</div><div class="v">86 кг</div><div class="d">+4 кг за месяц</div></div>${spark()}</div>
+  <div class="nx"><span>Дальше: тяга штанги в наклоне</span><span>›</span></div>
+ </div>
+ <div class="nav"><div class="on">${ic.w}Тренировка</div><div>${ic.p}Программа</div><div>${ic.s}Статистика</div><div>${ic.h}История</div></div>
+</div></div>`;
+document.getElementById('shelf').innerHTML=themes.map((t,i)=>`<div class="item ${t.c}">${phone(t)}<div class="cap"><b><span>${i+1}.</span>${t.name}</b><p>${t.d}</p></div></div>`).join('');
+const ideas=[
+ ['Strong','Колонка «Прошлый раз» прямо в таблице подходов, поля заранее заполнены прошлым весом','yes'],
+ ['Strong','Кнопка ✓ закрывает подход; таймер отдыха запускаешь сам, время берётся из программы','yes'],
+ ['Hevy','Типы подходов цветом: разминочный, рабочий, до отказа','yes'],
+ ['Hevy','Таймер отдыха в уведомлении и на экране блокировки, звук и вибрация в конце','yes'],
+ ['Hevy','Итог после тренировки: тоннаж, время, новые личные рекорды','yes'],
+ ['Fitbod','Карта мышц: сколько рабочих подходов на каждую группу за неделю (ориентир 10–20)','yes'],
+ ['GymBook','Календарь тренировок в виде сетки, где закрашены дни с тренировками','yes'],
+ ['Jefit','Калькулятор блинов: какие блины вешать на штангу для нужного веса','yes'],
+ ['Boostcamp','Программа по неделям с разгрузочной неделей и обмен программами между людьми (у нас через файл)','yes'],
+ ['Liftosaur','Правила прогрессии, описанные текстом или кодом: удобно тебе как программисту','later'],
+ ['Hevy','Лента друзей и сравнение результатов','later']
+];
+document.getElementById('ideas').innerHTML=ideas.map(r=>`<tr><td data-l="Откуда">${r[0]}</td><td data-l="">${r[1]}</td><td data-l="Когда" class="${r[2]}">${r[2]==='yes'?'Первая версия':'Позже'}</td></tr>`).join('');
+}
+</script>
+</body>
+</html>

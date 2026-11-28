@@ -1,0 +1,55 @@
+format: pero-program/1
+name: Тяни-толкай-ноги, 6 дней
+author: Pero
+description: >
+  Жимы / тяги / ноги по кругу два раза в неделю, седьмой день отдых.
+  Для опытных, у кого есть время и хорошее восстановление.
+level: advanced
+units: kg
+
+# rotation: тренировки идут по кругу, без привязки к дням недели
+schedule:
+  type: rotation
+  order: [push, pull, legs, push, pull, legs, rest]
+
+progression:
+  type: double
+
+deload:
+  every_weeks: 6
+  sets_factor: 0.5
+  rir: 3
+
+warmup:
+  suggest: true
+
+workouts:
+  - id: push
+    name: Толкай (грудь, плечи, трицепс)
+    exercises:
+      - { exercise: bench-press, variant: barbell, sets: 3, reps: 5-8, rir: 1-2, rest: 3m }
+      - { exercise: incline-press, variant: dumbbell-30, sets: 3, reps: 8-12, rir: 1, rest: 2m30s }
+      - { exercise: overhead-press, variant: machine, sets: 2, reps: 8-12, rir: 1, rest: 2m }
+      - { exercise: cable-fly, variant: low-to-high, sets: 2, reps: 12-15, rir: 0-1, rest: 90s }
+      - { exercise: lateral-raise, variant: cable, sides: each, sets: 3, reps: 12-15, rir: 0, rest: 60s }
+      - { exercise: overhead-triceps-extension, variant: cable, sets: 3, reps: 10-12, rir: 0-1, rest: 90s }
+
+  - id: pull
+    name: Тяни (спина, задняя дельта, бицепс)
+    exercises:
+      - { exercise: pull-up, variant: overhand, sets: 3, reps: 6-10, rir: 1-2, rest: 2m30s }
+      - { exercise: barbell-row, sets: 3, reps: 8-10, rir: 1-2, rest: 2m30s }
+      - { exercise: lat-pulldown, variant: underhand, sets: 2, reps: 10-12, rir: 1, rest: 2m }
+      - { exercise: face-pull, sets: 3, reps: 12-15, rir: 0-1, rest: 90s }
+      - { exercise: incline-db-curl, sets: 3, reps: 8-12, rir: 0-1, rest: 90s }
+      - { exercise: hammer-curl, variant: rope, sets: 2, reps: 10-12, rir: 0, rest: 60s }
+
+  - id: legs
+    name: Ноги
+    exercises:
+      - { exercise: squat, variant: back, sets: 3, reps: 5-8, rir: 2, rest: 3m }
+      - { exercise: romanian-deadlift, variant: barbell, sets: 3, reps: 8-10, rir: 2, rest: 2m30s }
+      - { exercise: leg-press, sets: 2, reps: 10-15, rir: 1, rest: 2m }
+      - { exercise: seated-leg-curl, sets: 3, reps: 10-12, rir: 0-1, rest: 90s }
+      - { exercise: leg-extension, sets: 2, reps: 12-15, rir: 0, rest: 90s }
+      - { exercise: standing-calf-raise, sets: 4, reps: 10-15, rir: 0-1, rest: 60s }

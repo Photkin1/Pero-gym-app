@@ -1,0 +1,577 @@
+# Библиотека упражнений Pero
+# Каждое упражнение описано один раз. Программы ссылаются на него по id.
+# Поля описаны в docs/program-format.md (раздел «Библиотека упражнений»).
+#
+# muscles.primary  — считаются в недельном объёме как 1 подход
+# muscles.secondary — как 0,5 подхода
+# sides: both (всегда двумя), each (всегда по одной), optional (переключатель в приложении)
+# type: weight (вес × повторы), bodyweight (свой вес, можно с доп. весом), time (секунды)
+# increment — шаг прибавки веса в кг для подсказки «пора добавить»
+
+version: 1
+exercises:
+
+  # ───────── Грудь ─────────
+  - id: bench-press
+    name: Жим лёжа
+    muscles: { primary: [chest], secondary: [triceps, front_delts] }
+    type: weight
+    sides: both
+    variants:
+      - { id: barbell, name: Штанга, increment: 2.5 }
+      - { id: dumbbell, name: Гантели, increment: 2 }
+      - { id: smith, name: Смит, increment: 2.5 }
+    tips:
+      - Опускай до касания нижней части груди
+      - Лопатки сведены и опущены, ноги упираются в пол
+      - Локти под 45–70° к корпусу, не разводи на 90°
+      - Умеренный прогиб в грудном отделе нормален
+
+  - id: incline-press
+    name: Жим на наклонной скамье
+    muscles: { primary: [chest], secondary: [front_delts, triceps] }
+    type: weight
+    sides: both
+    variants:
+      - { id: dumbbell-30, name: Гантели 30°, increment: 2 }
+      - { id: dumbbell-45, name: Гантели 45°, increment: 2 }
+      - { id: barbell-30, name: Штанга 30°, increment: 2.5 }
+      - { id: smith-30, name: Смит 30°, increment: 2.5 }
+      - { id: machine, name: Тренажёр, increment: 5 }
+    tips:
+      - Угол скамьи 30°, опускай до верха груди под ключицами
+      - Лопатки сведены, прогиб как в горизонтальном жиме
+
+  - id: chest-press-machine
+    name: Жим в тренажёре от груди
+    muscles: { primary: [chest], secondary: [triceps, front_delts] }
+    type: weight
+    sides: optional
+    increment: 5
+    tips:
+      - Ручки на уровне середины груди
+      - В нижней точке почувствуй растяжение груди, не отрывай лопатки от спинки
+
+  - id: pec-deck
+    name: Сведение рук в тренажёре «бабочка»
+    muscles: { primary: [chest] }
+    type: weight
+    sides: both
+    increment: 5
+    tips:
+      - Ручки на уровне середины груди, плечи отведены назад
+      - Если работают передние дельты, опусти сиденье и сведи лопатки
+
+  - id: cable-fly
+    name: Сведение рук в кроссовере
+    muscles: { primary: [chest] }
+    type: weight
+    sides: both
+    increment: 2.5
+    variants:
+      - { id: mid, name: Средние блоки }
+      - { id: low-to-high, name: Снизу вверх }
+      - { id: high-to-low, name: Сверху вниз }
+    tips:
+      - Локти слегка согнуты и не меняют угол
+      - Разводи до сильного растяжения груди
+
+  - id: dips
+    name: Отжимания на брусьях
+    muscles: { primary: [chest, triceps], secondary: [front_delts] }
+    type: bodyweight
+    sides: both
+    increment: 2.5
+    tips:
+      - Корпус слегка вперёд, опускайся до растяжения груди
+      - Плечи не поднимай к ушам
+
+  - id: push-up
+    name: Отжимания от пола
+    muscles: { primary: [chest], secondary: [triceps, front_delts] }
+    type: bodyweight
+    sides: both
+    tips:
+      - Тело прямое, касание грудью пола
+      - Локти под 45° к корпусу
+
+  # ───────── Спина ─────────
+  - id: pull-up
+    name: Подтягивания
+    muscles: { primary: [lats], secondary: [biceps, upper_back] }
+    type: bodyweight
+    sides: both
+    increment: 2.5
+    variants:
+      - { id: overhand, name: Прямой хват }
+      - { id: neutral, name: Нейтральный хват }
+      - { id: chin-up, name: Обратный хват }
+    tips:
+      - Внизу руки почти прямые, но плечи «включены»
+      - Начинай движение с опускания лопаток
+      - Тяни локти к рёбрам
+      - Вес добавляй, когда во всех подходах 10+
+
+  - id: lat-pulldown
+    name: Тяга верхнего блока
+    muscles: { primary: [lats], secondary: [biceps, upper_back] }
+    type: weight
+    sides: optional
+    increment: 5
+    variants:
+      - { id: neutral, name: Нейтральный хват }
+      - { id: wide, name: Широкий хват }
+      - { id: underhand, name: Обратный хват }
+    tips:
+      - Вверху дай рукам полностью выпрямиться и лопаткам подняться
+      - Тяни локти вниз к рёбрам, корпус почти вертикально
+
+  - id: chest-supported-row
+    name: Тяга с упором грудью
+    muscles: { primary: [upper_back, lats], secondary: [rear_delts, biceps] }
+    type: weight
+    sides: optional
+    increment: 5
+    variants:
+      - { id: machine, name: Тренажёр }
+      - { id: dumbbell-bench, name: Гантели на наклонной скамье, increment: 2 }
+      - { id: t-bar, name: Т-гриф, increment: 2.5 }
+    tips:
+      - Сначала сведи лопатки, потом тяни локтями назад
+      - Кисти как «крючки», впереди дай лопаткам полностью разойтись
+
+  - id: cable-row
+    name: Горизонтальная тяга блока сидя
+    muscles: { primary: [upper_back, lats], secondary: [rear_delts, biceps] }
+    type: weight
+    sides: optional
+    increment: 5
+    tips:
+      - Корпус неподвижен, тянешь локтями, а не спиной
+      - Впереди дай лопаткам разойтись
+
+  - id: one-arm-db-row
+    name: Тяга гантели одной рукой с опорой
+    muscles: { primary: [lats, upper_back], secondary: [rear_delts, biceps] }
+    type: weight
+    sides: each
+    increment: 2
+    tips:
+      - Тяни локоть к бедру по дуге
+      - Внизу дай плечу опуститься и растянуть широчайшую
+
+  - id: barbell-row
+    name: Тяга штанги в наклоне
+    muscles: { primary: [upper_back, lats], secondary: [rear_delts, biceps, lower_back] }
+    type: weight
+    sides: both
+    increment: 2.5
+    tips:
+      - Наклон 30–45°, спина ровная
+      - Тяни к низу живота, без рывков корпусом
+
+  - id: straight-arm-pulldown
+    name: Пуловер на блоке прямыми руками
+    muscles: { primary: [lats] }
+    type: weight
+    sides: both
+    increment: 2.5
+    tips:
+      - Руки почти прямые, движение только в плечах
+      - Вверху почувствуй растяжение широчайших
+
+  - id: back-extension
+    name: Гиперэкстензия
+    muscles: { primary: [glutes, hamstrings], secondary: [lower_back] }
+    type: bodyweight
+    sides: both
+    increment: 2.5
+    tips:
+      - Вверху останавливайся в прямую линию с ногами и сожми ягодицы
+      - Не прогибайся выше прямой, это нагружает поясницу
+
+  # ───────── Ноги ─────────
+  - id: squat
+    name: Приседания со штангой
+    muscles: { primary: [quads, glutes], secondary: [adductors, lower_back] }
+    type: weight
+    sides: both
+    increment: 2.5
+    variants:
+      - { id: back, name: Штанга на спине }
+      - { id: front, name: Фронтальные }
+      - { id: smith, name: В Смите }
+    tips:
+      - Глубина ниже параллели, если позволяет техника
+      - Колени идут по линии носков, спина ровная
+
+  - id: hack-squat
+    name: Присед в наклонном тренажёре (гак)
+    muscles: { primary: [quads, glutes], secondary: [adductors] }
+    type: weight
+    sides: both
+    increment: 5
+    tips:
+      - Глубже 90°, пока таз прижат к спинке
+      - Стопы чуть выше на платформе помогают присесть глубже
+      - Ради глубины снизь вес на ~20%
+
+  - id: leg-press
+    name: Жим ногами
+    muscles: { primary: [quads, glutes], secondary: [adductors] }
+    type: weight
+    sides: optional
+    increment: 10
+    tips:
+      - Опускай глубоко, но таз не отрывается от сиденья
+      - Колени не сводятся внутрь
+
+  - id: bulgarian-split-squat
+    name: Болгарские сплит-приседы
+    muscles: { primary: [quads, glutes], secondary: [adductors] }
+    type: weight
+    sides: each
+    increment: 2
+    variants:
+      - { id: dumbbell, name: Гантели }
+      - { id: bodyweight, name: Свой вес }
+      - { id: smith, name: Смит, increment: 2.5 }
+    tips:
+      - Небольшой наклон корпуса вперёд больше нагружает ягодицу
+      - Опускайся, пока заднее колено почти касается пола
+
+  - id: lunge
+    name: Выпады
+    muscles: { primary: [quads, glutes], secondary: [adductors] }
+    type: weight
+    sides: each
+    increment: 2
+    variants:
+      - { id: dumbbell, name: Гантели }
+      - { id: smith, name: Смит, increment: 2.5 }
+      - { id: walking, name: Шагающие }
+    tips:
+      - Шаг достаточно длинный, колено над стопой
+      - Корпус ровный, опускайся вертикально
+
+  - id: leg-extension
+    name: Разгибание ног
+    muscles: { primary: [quads] }
+    type: weight
+    sides: optional
+    increment: 5
+    tips:
+      - "Откинь спинку назад: так прямая мышца бедра растянута сильнее"
+      - Внизу полностью сгибай колени
+
+  - id: romanian-deadlift
+    name: Румынская тяга
+    muscles: { primary: [hamstrings, glutes], secondary: [lower_back] }
+    type: weight
+    sides: both
+    increment: 2
+    variants:
+      - { id: dumbbell, name: Гантели }
+      - { id: barbell, name: Штанга, increment: 2.5 }
+    tips:
+      - Таз уводится назад, колени слегка согнуты
+      - Спина ровная, вес до середины голени
+      - "Любая боль в пояснице: возвращайся к гиперэкстензии"
+
+  - id: deadlift
+    name: Становая тяга
+    muscles: { primary: [glutes, hamstrings, lower_back], secondary: [quads, upper_back] }
+    type: weight
+    sides: both
+    increment: 2.5
+    tips:
+      - Гриф над серединой стопы, спина ровная
+      - Тяни, отталкиваясь ногами от пола
+
+  - id: seated-leg-curl
+    name: Сгибание ног сидя
+    muscles: { primary: [hamstrings] }
+    type: weight
+    sides: optional
+    increment: 5
+    tips:
+      - Наклон корпуса вперёд усиливает растяжение
+      - "Сидя лучше, чем лёжа: больше роста бицепса бедра (Maeo 2021)"
+
+  - id: lying-leg-curl
+    name: Сгибание ног лёжа
+    muscles: { primary: [hamstrings] }
+    type: weight
+    sides: optional
+    increment: 5
+    tips:
+      - Таз прижат к скамье
+      - Внизу полностью разгибай колени
+
+  - id: hip-thrust
+    name: Ягодичный мост
+    muscles: { primary: [glutes], secondary: [hamstrings] }
+    type: weight
+    sides: both
+    increment: 5
+    variants:
+      - { id: barbell, name: Штанга, increment: 2.5 }
+      - { id: machine, name: Тренажёр }
+    tips:
+      - Вверху таз в линию с корпусом, подбородок к груди
+      - Пауза 1 с вверху, сожми ягодицы
+
+  - id: hip-abduction
+    name: Разведение ног в тренажёре
+    muscles: { primary: [abductors, glutes] }
+    type: weight
+    sides: both
+    increment: 5
+    tips:
+      - Лёгкий наклон корпуса вперёд больше нагружает ягодицы
+      - Возвращай под контролем
+
+  - id: hip-adduction
+    name: Сведение ног в тренажёре
+    muscles: { primary: [adductors] }
+    type: weight
+    sides: both
+    increment: 5
+    tips:
+      - Разводи до сильного растяжения
+      - Не бросай вес в начальной точке
+
+  - id: standing-calf-raise
+    name: Подъём на носки стоя
+    muscles: { primary: [calves] }
+    type: weight
+    sides: optional
+    increment: 5
+    tips:
+      - Пауза внизу 1–2 с в растянутом положении
+      - Полная амплитуда, без пружинения
+
+  - id: seated-calf-raise
+    name: Подъём на носки сидя
+    muscles: { primary: [calves] }
+    type: weight
+    sides: optional
+    increment: 5
+    tips:
+      - Пауза внизу 1–2 с
+      - Поднимайся на максимальную высоту
+
+  # ───────── Плечи ─────────
+  - id: overhead-press
+    name: Жим над головой
+    muscles: { primary: [front_delts], secondary: [side_delts, triceps] }
+    type: weight
+    sides: both
+    increment: 2.5
+    variants:
+      - { id: machine, name: Тренажёр, increment: 5 }
+      - { id: smith, name: Смит }
+      - { id: dumbbell, name: Гантели сидя, increment: 2 }
+      - { id: barbell, name: Штанга стоя }
+    tips:
+      - Опускай рукояти до уровня подбородка
+      - Не прогибайся в пояснице
+
+  - id: lateral-raise
+    name: Махи в стороны
+    muscles: { primary: [side_delts] }
+    type: weight
+    sides: optional
+    increment: 1
+    variants:
+      - { id: dumbbell, name: Гантели }
+      - { id: cable, name: Кроссовер, increment: 2.5 }
+      - { id: machine, name: Тренажёр, increment: 5 }
+    tips:
+      - Поднимай до уровня плеч, локти чуть впереди тела
+      - "Без раскачки: если она нужна с первых повторов, вес велик"
+      - В кроссовере трос из-за спины нагружает дельту и внизу
+
+  - id: reverse-pec-deck
+    name: Обратная бабочка
+    muscles: { primary: [rear_delts], secondary: [upper_back] }
+    type: weight
+    sides: optional
+    increment: 5
+    tips:
+      - Руки почти прямые, тяни в стороны, а не назад
+      - Лопатки не своди
+
+  - id: face-pull
+    name: Тяга каната к лицу
+    muscles: { primary: [rear_delts], secondary: [upper_back] }
+    type: weight
+    sides: both
+    increment: 2.5
+    tips:
+      - Тяни к переносице, разводя концы каната
+      - Локти выше кистей
+
+  - id: shrug
+    name: Шраги
+    muscles: { primary: [traps] }
+    type: weight
+    sides: both
+    increment: 2
+    variants:
+      - { id: dumbbell, name: Гантели }
+      - { id: barbell, name: Штанга, increment: 2.5 }
+    tips:
+      - Поднимай плечи вверх, без вращений
+      - Пауза вверху
+
+  # ───────── Руки ─────────
+  - id: incline-db-curl
+    name: Сгибания на бицепс на наклонной скамье
+    muscles: { primary: [biceps] }
+    type: weight
+    sides: optional
+    increment: 1
+    tips:
+      - "Полностью разгибай руку внизу: это самая полезная часть"
+      - Локти не уводи вперёд
+
+  - id: barbell-curl
+    name: Сгибания со штангой
+    muscles: { primary: [biceps] }
+    type: weight
+    sides: both
+    increment: 2.5
+    variants:
+      - { id: straight, name: Прямой гриф }
+      - { id: ez, name: EZ-гриф }
+    tips:
+      - Без раскачки корпусом
+      - Полностью разгибай внизу
+
+  - id: hammer-curl
+    name: Сгибания «молотки»
+    muscles: { primary: [biceps, forearms] }
+    type: weight
+    sides: optional
+    increment: 1
+    variants:
+      - { id: dumbbell, name: Гантели }
+      - { id: rope, name: Канат на блоке, increment: 2.5 }
+    tips:
+      - Нейтральный хват, локти у корпуса
+
+  - id: cable-curl
+    name: Сгибания на нижнем блоке
+    muscles: { primary: [biceps] }
+    type: weight
+    sides: optional
+    increment: 2.5
+    tips:
+      - Постоянное натяжение, без рывков
+
+  - id: preacher-curl
+    name: Сгибания на скамье Скотта
+    muscles: { primary: [biceps] }
+    type: weight
+    sides: optional
+    increment: 2.5
+    tips:
+      - Внизу почти полностью разгибай руку, под контролем
+
+  - id: overhead-triceps-extension
+    name: Разгибания из-за головы
+    muscles: { primary: [triceps] }
+    type: weight
+    sides: optional
+    increment: 2.5
+    variants:
+      - { id: cable, name: Кроссовер }
+      - { id: dumbbell, name: Гантель, increment: 2 }
+      - { id: ez, name: EZ-гриф }
+    tips:
+      - Локти держи на месте
+      - Даёт ~1,4 раза больше роста, чем разгибания вниз (Maeo 2023)
+
+  - id: triceps-pushdown
+    name: Разгибания на блоке вниз
+    muscles: { primary: [triceps] }
+    type: weight
+    sides: optional
+    increment: 2.5
+    variants:
+      - { id: rope, name: Канат }
+      - { id: bar, name: Прямая рукоять }
+    tips:
+      - Локти прижаты к корпусу
+      - Внизу полностью разгибай руку
+
+  - id: skull-crusher
+    name: Французский жим лёжа
+    muscles: { primary: [triceps] }
+    type: weight
+    sides: both
+    increment: 2.5
+    tips:
+      - Опускай гриф за голову, локти смотрят вверх
+
+  - id: close-grip-bench
+    name: Жим узким хватом
+    muscles: { primary: [triceps, chest], secondary: [front_delts] }
+    type: weight
+    sides: both
+    increment: 2.5
+    tips:
+      - Хват на ширине плеч, локти вдоль корпуса
+
+  - id: wrist-curl
+    name: Сгибания запястий
+    muscles: { primary: [forearms] }
+    type: weight
+    sides: both
+    increment: 1
+    tips:
+      - Полная амплитуда, гриф перекатывается к пальцам
+
+  # ───────── Пресс ─────────
+  - id: cable-crunch
+    name: Скручивания на блоке
+    muscles: { primary: [abs] }
+    type: weight
+    sides: both
+    increment: 5
+    variants:
+      - { id: cable, name: Блок }
+      - { id: machine, name: Тренажёр }
+    tips:
+      - Скругляй спину, а не сгибайся в тазу
+      - Таз неподвижен
+
+  - id: hanging-leg-raise
+    name: Подъём ног в висе
+    muscles: { primary: [abs] }
+    type: bodyweight
+    sides: both
+    variants:
+      - { id: hanging, name: В висе }
+      - { id: captains-chair, name: В упоре на локтях }
+    tips:
+      - Подкручивай таз вверх, а не просто поднимай ноги
+      - Без раскачки
+
+  - id: plank
+    name: Планка
+    muscles: { primary: [abs] }
+    type: time
+    sides: both
+    tips:
+      - Тело прямое, ягодицы и пресс напряжены
+      - Не проваливай поясницу
+
+  - id: ab-wheel
+    name: Ролик для пресса
+    muscles: { primary: [abs] }
+    type: bodyweight
+    sides: both
+    tips:
+      - Поясница не прогибается, выкатывай только пока держишь корпус

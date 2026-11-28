@@ -1,0 +1,28 @@
+{
+ "name": "Pero",
+ "short_name": "Pero",
+ "start_url": "/Pero-gym-app/app/",
+ "scope": "/Pero-gym-app/app/",
+ "display": "standalone",
+ "background_color": "#121316",
+ "theme_color": "#121316",
+ "lang": "ru",
+ "icons": [
+  {
+   "src": "/Pero-gym-app/app/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "/Pero-gym-app/app/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "/Pero-gym-app/app/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}

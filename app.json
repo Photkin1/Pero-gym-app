@@ -1,0 +1,84 @@
+{
+  "expo": {
+    "name": "Pero",
+    "slug": "pero",
+    "scheme": "pero",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#121316",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "app.pero.gym"
+    },
+    "android": {
+      "package": "app.pero.gym",
+      "adaptiveIcon": {
+        "backgroundColor": "#121316",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "POST_NOTIFICATIONS",
+        "VIBRATE"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "output": "single",
+      "name": "Pero",
+      "themeColor": "#121316"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-sharing",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 140,
+          "backgroundColor": "#121316"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#ff6b4a",
+          "icon": "./assets/notification-icon.png",
+          "sounds": [
+            "./assets/sounds/rest_end.wav"
+          ]
+        }
+      ],
+      "expo-asset",
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "Streak",
+              "label": "Pero: серия",
+              "description": "Огонёк серии и следующая тренировка",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "previewImage": "./assets/widget-preview.png",
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 1800000
+            }
+          ]
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false,
+      "baseUrl": "/Pero-gym-app/app"
+    }
+  }
+}

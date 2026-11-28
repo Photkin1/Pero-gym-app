@@ -1,0 +1,347 @@
+// Все запросы к базе в одном месте. Экраны не пишут SQL сами.
+import { db, notify, TABLES } from './db';
+import libraryJson from '../data/library.json';
+import programsJson from '../data/programs.json';
+import { exerciseSchema, parseProgram, type ExerciseDef, type Program, type Workout } from '../core/program';
+import type { SetKind, SetLog, Side } from '../core/training';
+
+export const BUNDLED_LIBRARY = libraryJson as unknown as ExerciseDef[];
+export const BUNDLED_PROGRAMS = programsJson as { file: string; source: string }[];
+
+// ───────── Настройки ─────────
+
+export function getSetting<T>(key: string, fallback: T): T {
+  const r = db.getFirstSync<{ value: string }>('SELECT value FROM setting WHERE key = ?', key);
+  if (!r) return fallback;
+  try {
+    return JSON.parse(r.value) as T;
+  } catch {
+    return fallback;
+  }
+}
+export function setSetting(key: string, value: unknown) {
+  db.runSync('INSERT INTO setting(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value', key, JSON.stringify(value));
+  notify();
+}
+
+// ───────── Библиотека ─────────
+
+export function getLibrary(): ExerciseDef[] {
+  const custom = db.getAllSync<{ json: string }>('SELECT json FROM custom_exercise').map((r) => JSON.parse(r.json) as ExerciseDef);
+  const ids = new Set(custom.map((c) => c.id));
+  return [...BUNDLED_LIBRARY.filter((e) => !ids.has(e.id)), ...custom];
+}
+export function saveCustomExercise(e: ExerciseDef) {
+  const parsed = exerciseSchema.parse(e);
+  db.runSync('INSERT INTO custom_exercise(id, json) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET json = excluded.json', parsed.id, JSON.stringify(parsed));
+  notify();
+}
+
+// ───────── Программы ─────────
+
+export type StoredProgram = { id: number; name: string; program: Program; isActive: boolean; startedAt: number | null; updatedAt: number };
+type ProgramRow = { id: number; name: string; json: string; is_active: number; started_at: number | null; updated_at: number };
+const toProgram = (r: ProgramRow): StoredProgram => ({ id: r.id, name: r.name, program: JSON.parse(r.json), isActive: !!r.is_active, startedAt: r.started_at, updatedAt: r.updated_at });
+
+export function listPrograms(): StoredProgram[] {
+  return db.getAllSync<ProgramRow>('SELECT * FROM program ORDER BY is_active DESC, updated_at DESC').map(toProgram);
+}
+export function getProgram(id: number): StoredProgram | null {
+  const r = db.getFirstSync<ProgramRow>('SELECT * FROM program WHERE id = ?', id);
+  return r ? toProgram(r) : null;
+}
+export function getActiveProgram(): StoredProgram | null {
+  const r = db.getFirstSync<ProgramRow>('SELECT * FROM program WHERE is_active = 1 LIMIT 1');
+  return r ? toProgram(r) : null;
+}
+export function saveProgram(p: Program, opts: { id?: number; activate?: boolean } = {}): number {
+  const now = Date.now();
+  let id = opts.id;
+  db.withTransactionSync(() => {
+    if (opts.activate) db.runSync('UPDATE program SET is_active = 0');
+    if (id) {
+      db.runSync('UPDATE program SET name = ?, json = ?, updated_at = ? WHERE id = ?', p.name, JSON.stringify(p), now, id);
+      if (opts.activate) db.runSync('UPDATE program SET is_active = 1 WHERE id = ?', id);
+    } else {
+      id = db.runSync('INSERT INTO program(name, json, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?)', p.name, JSON.stringify(p), opts.activate ? 1 : 0, now, now).lastInsertRowId;
+    }
+  });
+  notify();
+  return id!;
+}
+export function activateProgram(id: number) {
+  db.withTransactionSync(() => {
+    db.runSync('UPDATE program SET is_active = 0');
+    db.runSync('UPDATE program SET is_active = 1 WHERE id = ?', id);
+  });
+  notify();
+}
+export function deleteProgram(id: number) {
+  db.runSync('DELETE FROM program WHERE id = ?', id);
+  notify();
+}
+
+/** Первый запуск: кладём встроенные программы, программу Петра делаем основной */
+export function seedIfEmpty() {
+  const n = db.getFirstSync<{ n: number }>('SELECT COUNT(*) AS n FROM program')?.n ?? 0;
+  if (n) return;
+  for (const f of BUNDLED_PROGRAMS) {
+    const r = parseProgram(f.source, BUNDLED_LIBRARY);
+    if (r.ok) saveProgram(r.program, { activate: f.file === 'upper-lower-4d.yaml' });
+  }
+}
+
+/** Разовые правки встроенной программы Петра у тех, кто её уже установил. Свои изменения в программе не затираются. */
+export function patchBundledPrograms() {
+  const KEY = 'patch.ul4d.delts-calves-shrugs';
+  if (getSetting(KEY, false)) return;
+  const rows = db.getAllSync<{ id: number; json: string }>('SELECT id, json FROM program');
+  for (const r of rows) {
+    const p = JSON.parse(r.json) as Program;
+    if (p.name !== 'Верх/низ, 4 дня') continue;
+    let changed = false;
+    const w = (id: string) => p.workouts.find((x) => x.id === id);
+    const ua = w('upper-a');
+    if (ua) {
+      const i = ua.exercises.findIndex((e) => e.exercise === 'lateral-raise');
+      if (i >= 0 && ua.exercises[i].sets < 4) { ua.exercises[i].sets = 4; changed = true; }
+      if (!ua.exercises.some((e) => e.exercise === 'reverse-pec-deck')) {
+        ua.exercises.splice(i >= 0 ? i + 1 : ua.exercises.length, 0, { exercise: 'reverse-pec-deck', sets: 2, reps: '12-15', rir: '0-1', rest: '60s', start_weight: 40 });
+        changed = true;
+      }
+    }
+    const ub = w('upper-b');
+    if (ub && !ub.exercises.some((e) => e.exercise === 'shrug')) {
+      const i = ub.exercises.findIndex((e) => e.exercise === 'lateral-raise');
+      ub.exercises.splice(i >= 0 ? i + 1 : ub.exercises.length, 0, { exercise: 'shrug', variant: 'dumbbell', sets: 3, reps: '10-15', rir: '0-1', rest: '60s', note: 'Пауза вверху 1 с, плечи не крутить' });
+      changed = true;
+    }
+    for (const [wid, ex] of [['lower-a', 'standing-calf-raise'], ['lower-b', 'seated-calf-raise']] as const) {
+      const e = w(wid)?.exercises.find((x) => x.exercise === ex);
+      if (e && e.sets < 4) { e.sets = 4; changed = true; }
+    }
+    if (changed) db.runSync('UPDATE program SET json = ?, updated_at = ? WHERE id = ?', JSON.stringify(p), Date.now(), r.id);
+  }
+  setSetting(KEY, true);
+}
+
+// ───────── Предпочтения по упражнению ─────────
+
+export type ExercisePref = { variantId: string | null; sides: 'both' | 'each' | null; increment: number | null };
+export function getPref(exerciseId: string): ExercisePref {
+  // Все настройки сразу: их мало, а запрос в веб-версии дорогой (результат кешируется до изменения)
+  const r = db
+    .getAllSync<{ exercise_id: string; variant_id: string | null; sides: string | null; increment: number | null }>('SELECT * FROM exercise_pref')
+    .find((x) => x.exercise_id === exerciseId);
+  return { variantId: r?.variant_id ?? null, sides: (r?.sides as ExercisePref['sides']) ?? null, increment: r?.increment ?? null };
+}
+export function setPref(exerciseId: string, patch: Partial<ExercisePref>) {
+  const cur = getPref(exerciseId);
+  const n = { ...cur, ...patch };
+  db.runSync(
+    'INSERT INTO exercise_pref(exercise_id, variant_id, sides, increment) VALUES (?, ?, ?, ?) ON CONFLICT(exercise_id) DO UPDATE SET variant_id = excluded.variant_id, sides = excluded.sides, increment = excluded.increment',
+    exerciseId, n.variantId, n.sides, n.increment,
+  );
+  notify();
+}
+
+// ───────── Тренировки ─────────
+
+export type Session = { id: number; programId: number | null; workoutId: string | null; workoutName: string; plan: Workout; startedAt: number; finishedAt: number | null; note: string | null; mood: number | null; fatigue: number | null };
+type SessionRow = { id: number; program_id: number | null; workout_id: string | null; workout_name: string; plan_json: string; started_at: number; finished_at: number | null; note: string | null; mood: number | null; fatigue: number | null };
+const toSession = (r: SessionRow): Session => ({ id: r.id, programId: r.program_id, workoutId: r.workout_id, workoutName: r.workout_name, plan: JSON.parse(r.plan_json), startedAt: r.started_at, finishedAt: r.finished_at, note: r.note, mood: r.mood, fatigue: r.fatigue });
+
+export function startSession(programId: number | null, plan: Workout): number {
+  const now = Date.now();
+  const id = db.runSync('INSERT INTO session(program_id, workout_id, workout_name, plan_json, started_at) VALUES (?, ?, ?, ?, ?)', programId, plan.id, plan.name, JSON.stringify(plan), now).lastInsertRowId;
+  if (programId) db.runSync('UPDATE program SET started_at = COALESCE(started_at, ?) WHERE id = ?', now, programId);
+  notify();
+  return id;
+}
+export function getSession(id: number): Session | null {
+  const r = db.getFirstSync<SessionRow>('SELECT * FROM session WHERE id = ?', id);
+  return r ? toSession(r) : null;
+}
+export function getOpenSession(): Session | null {
+  const r = db.getFirstSync<SessionRow>('SELECT * FROM session WHERE finished_at IS NULL ORDER BY started_at DESC LIMIT 1');
+  return r ? toSession(r) : null;
+}
+export function updateSessionPlan(id: number, plan: Workout) {
+  db.runSync('UPDATE session SET plan_json = ? WHERE id = ?', JSON.stringify(plan), id);
+  notify();
+}
+export function finishSession(id: number, f: { note?: string; mood?: number | null; fatigue?: number | null } = {}) {
+  db.runSync(
+    'UPDATE session SET finished_at = COALESCE(finished_at, ?), note = COALESCE(?, note), mood = COALESCE(?, mood), fatigue = COALESCE(?, fatigue) WHERE id = ?',
+    Date.now(), f.note ?? null, f.mood ?? null, f.fatigue ?? null, id,
+  );
+  notify();
+}
+export function deleteSession(id: number) {
+  db.withTransactionSync(() => {
+    db.runSync('DELETE FROM set_log WHERE session_id = ?', id);
+    db.runSync('DELETE FROM session WHERE id = ?', id);
+  });
+  notify();
+}
+
+export type SessionSummary = Session & { sets: number; tonnage: number; exercises: number };
+export function listSessions(limit = 200): SessionSummary[] {
+  const rows = db.getAllSync<SessionRow & { sets: number; tonnage: number; exercises: number }>(
+    `SELECT s.*, COUNT(l.id) AS sets, COALESCE(SUM(l.weight * l.reps), 0) AS tonnage, COUNT(DISTINCT l.exercise_id) AS exercises
+     FROM session s LEFT JOIN set_log l ON l.session_id = s.id AND l.kind = 'work' AND l.completed_at IS NOT NULL
+     WHERE s.finished_at IS NOT NULL GROUP BY s.id ORDER BY s.started_at DESC LIMIT ?`,
+    limit,
+  );
+  return rows.map((r) => ({ ...toSession(r), sets: r.sets, tonnage: r.tonnage, exercises: r.exercises }));
+}
+/** Последняя тренировка по программе: свободные не сдвигают очередь */
+export function lastPlannedSession(): Session | null {
+  const r = db.getFirstSync<SessionRow>("SELECT * FROM session WHERE finished_at IS NOT NULL AND COALESCE(workout_id, '') <> 'free' ORDER BY started_at DESC LIMIT 1");
+  return r ? toSession(r) : null;
+}
+export function lastFinishedSession(): Session | null {
+  const r = db.getFirstSync<SessionRow>('SELECT * FROM session WHERE finished_at IS NOT NULL ORDER BY started_at DESC LIMIT 1');
+  return r ? toSession(r) : null;
+}
+
+// ───────── Подходы ─────────
+
+type SetRow = { id: number; session_id: number; exercise_id: string; variant_id: string | null; position: number; set_index: number; kind: string; side: string; weight: number | null; reps: number | null; duration_s: number | null; rir: number | null; rest_planned_s: number | null; rest_actual_s: number | null; completed_at: number | null; note: string | null };
+const toSet = (r: SetRow): SetLog => ({
+  id: r.id, sessionId: r.session_id, exerciseId: r.exercise_id, variantId: r.variant_id, position: r.position, setIndex: r.set_index,
+  kind: r.kind as SetKind, side: r.side as Side, weight: r.weight, reps: r.reps, durationS: r.duration_s, rir: r.rir,
+  restPlannedS: r.rest_planned_s, restActualS: r.rest_actual_s, completedAt: r.completed_at, note: r.note,
+});
+
+export function listSets(sessionId: number): SetLog[] {
+  return db.getAllSync<SetRow>('SELECT * FROM set_log WHERE session_id = ? ORDER BY position, kind, set_index, side', sessionId).map(toSet);
+}
+
+export type NewSet = Omit<SetLog, 'id'>;
+export function insertSet(s: NewSet): number {
+  const id = db.runSync(
+    `INSERT INTO set_log(session_id, exercise_id, variant_id, position, set_index, kind, side, weight, reps, duration_s, rir, rest_planned_s, rest_actual_s, completed_at, note)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    s.sessionId, s.exerciseId, s.variantId, s.position, s.setIndex, s.kind, s.side, s.weight, s.reps, s.durationS, s.rir, s.restPlannedS, s.restActualS, s.completedAt, s.note,
+  ).lastInsertRowId;
+  notify();
+  return id;
+}
+/** Много подходов одним запросом: в веб-версии каждый запрос дорогой */
+export function insertSets(rows: NewSet[]) {
+  if (!rows.length) return;
+  const CHUNK = 60; // ограничение SQLite на число параметров
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    const part = rows.slice(i, i + CHUNK);
+    db.runSync(
+      `INSERT INTO set_log(session_id, exercise_id, variant_id, position, set_index, kind, side, weight, reps, duration_s, rir, rest_planned_s, rest_actual_s, completed_at, note)
+       VALUES ${part.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ')}`,
+      ...part.flatMap((s) => [s.sessionId, s.exerciseId, s.variantId, s.position, s.setIndex, s.kind, s.side, s.weight, s.reps, s.durationS, s.rir, s.restPlannedS, s.restActualS, s.completedAt, s.note]),
+    );
+  }
+  notify();
+}
+export function updateSet(id: number, patch: Partial<NewSet>) {
+  const map: Record<string, string> = { variantId: 'variant_id', setIndex: 'set_index', durationS: 'duration_s', restPlannedS: 'rest_planned_s', restActualS: 'rest_actual_s', completedAt: 'completed_at', exerciseId: 'exercise_id', sessionId: 'session_id' };
+  const keys = Object.keys(patch) as (keyof NewSet)[];
+  if (!keys.length) return;
+  const cols = keys.map((k) => `${map[k] ?? k} = ?`).join(', ');
+  db.runSync(`UPDATE set_log SET ${cols} WHERE id = ?`, ...keys.map((k) => (patch[k] ?? null) as string | number | null), id);
+  notify();
+}
+export function deleteSet(id: number) {
+  db.runSync('DELETE FROM set_log WHERE id = ?', id);
+  notify();
+}
+export function setVariantForExercise(sessionId: number, position: number, variantId: string | null) {
+  db.runSync('UPDATE set_log SET variant_id = ? WHERE session_id = ? AND position = ?', variantId, sessionId, position);
+  notify();
+}
+
+/** Подходы последней завершённой тренировки с этим упражнением и вариантом */
+export function lastSetsFor(exerciseId: string, variantId: string | null, excludeSessionId?: number): SetLog[] {
+  // Одним запросом: в веб-версии каждый запрос дорогой
+  return db
+    .getAllSync<SetRow>(
+      `SELECT * FROM set_log WHERE exercise_id = ? AND variant_id IS ? AND completed_at IS NOT NULL AND session_id = (
+         SELECT l.session_id FROM set_log l JOIN session s ON s.id = l.session_id
+         WHERE l.exercise_id = ? AND l.variant_id IS ? AND l.completed_at IS NOT NULL AND l.session_id IS NOT ?
+         ORDER BY s.started_at DESC LIMIT 1)
+       ORDER BY set_index, side`,
+      exerciseId, variantId, exerciseId, variantId, excludeSessionId ?? -1,
+    )
+    .map(toSet);
+}
+
+export type HistorySet = SetLog & { startedAt: number; workoutName: string };
+export function setsBetween(from: number, to = Date.now() + 86400000): HistorySet[] {
+  return db.getAllSync<SetRow & { started_at: number; workout_name: string }>(
+    `SELECT l.*, s.started_at, s.workout_name FROM set_log l JOIN session s ON s.id = l.session_id
+     WHERE l.completed_at IS NOT NULL AND s.started_at >= ? AND s.started_at < ? ORDER BY s.started_at, l.position, l.set_index`,
+    from, to,
+  ).map((r) => ({ ...toSet(r), startedAt: r.started_at, workoutName: r.workout_name }));
+}
+export function setsForExercise(exerciseId: string): HistorySet[] {
+  return db.getAllSync<SetRow & { started_at: number; workout_name: string }>(
+    `SELECT l.*, s.started_at, s.workout_name FROM set_log l JOIN session s ON s.id = l.session_id
+     WHERE l.exercise_id = ? AND l.completed_at IS NOT NULL ORDER BY s.started_at, l.set_index`,
+    exerciseId,
+  ).map((r) => ({ ...toSet(r), startedAt: r.started_at, workoutName: r.workout_name }));
+}
+export function exercisesWithHistory(): { exerciseId: string; sessions: number; last: number }[] {
+  return db.getAllSync<{ exercise_id: string; sessions: number; last: number }>(
+    `SELECT l.exercise_id, COUNT(DISTINCT l.session_id) AS sessions, MAX(l.completed_at) AS last
+     FROM set_log l WHERE l.completed_at IS NOT NULL AND l.kind = 'work' GROUP BY l.exercise_id ORDER BY last DESC`,
+  ).map((r) => ({ exerciseId: r.exercise_id, sessions: r.sessions, last: r.last }));
+}
+
+// ───────── Вес тела ─────────
+
+export const MEASURES = ['waist', 'chest', 'arm', 'hips', 'thigh'] as const;
+export type Measure = (typeof MEASURES)[number];
+export const MEASURE_RU: Record<Measure, string> = { waist: 'Талия', chest: 'Грудь', arm: 'Бицепс', hips: 'Ягодицы', thigh: 'Бедро' };
+export type BodyMetric = { date: string; weight: number | null; note: string | null } & Record<Measure, number | null>;
+export function listBody(): BodyMetric[] {
+  return db.getAllSync<BodyMetric>('SELECT * FROM body_metric ORDER BY date');
+}
+/** Записывает только переданные поля, остальные за этот день не трогает */
+export function upsertBody(date: string, patch: Partial<Omit<BodyMetric, 'date'>>) {
+  const cols = Object.keys(patch).filter((k) => ['weight', 'note', ...MEASURES].includes(k));
+  if (!cols.length) return;
+  const vals = cols.map((k) => (patch as Record<string, number | string | null>)[k] ?? null);
+  db.runSync(
+    `INSERT INTO body_metric(date, ${cols.join(', ')}) VALUES (?, ${cols.map(() => '?').join(', ')}) ON CONFLICT(date) DO UPDATE SET ${cols.map((c) => `${c} = excluded.${c}`).join(', ')}`,
+    date, ...vals,
+  );
+  notify();
+}
+export function deleteBody(date: string) {
+  db.runSync('DELETE FROM body_metric WHERE date = ?', date);
+  notify();
+}
+
+// ───────── Бэкап ─────────
+
+export type Backup = { app: 'pero'; version: 1; createdAt: string; tables: Record<string, Record<string, unknown>[]> };
+
+export function dumpAll(): Backup {
+  const tables: Backup['tables'] = {};
+  for (const t of TABLES) tables[t] = db.getAllSync<Record<string, unknown>>(`SELECT * FROM ${t}`);
+  return { app: 'pero', version: 1, createdAt: new Date().toISOString(), tables };
+}
+
+export function restoreAll(b: Backup) {
+  if (b?.app !== 'pero' || !b.tables) throw new Error('Это не файл бэкапа Pero');
+  db.withTransactionSync(() => {
+    for (const t of [...TABLES].reverse()) db.runSync(`DELETE FROM ${t}`);
+    for (const t of TABLES) {
+      for (const row of b.tables[t] ?? []) {
+        const cols = Object.keys(row);
+        if (!cols.every((c) => /^[a-z_]+$/.test(c))) throw new Error('Повреждённый бэкап');
+        db.runSync(`INSERT INTO ${t}(${cols.join(',')}) VALUES (${cols.map(() => '?').join(',')})`, ...cols.map((c) => row[c] as string | number | null));
+      }
+    }
+  });
+  notify();
+}
